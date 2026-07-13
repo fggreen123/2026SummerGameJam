@@ -6,7 +6,6 @@ public class PlayerMove : MonoBehaviour
     private Vector2 MoveInput;
     private Rigidbody2D rb;
     public float MoveSpeed = 5f;
-    public bool Moveable = true;
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
@@ -20,7 +19,6 @@ public class PlayerMove : MonoBehaviour
     }
     private void FixedUpdate()
     {
-        if (!Moveable) return;
         rb.linearVelocity = new Vector2(MoveInput.x * MoveSpeed, MoveInput.y*MoveSpeed);
     }
 }
