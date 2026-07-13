@@ -8,6 +8,7 @@ public class CardDistribution: MonoBehaviour
 {
     [SerializeField] private PlayerMove Player;
     [SerializeField] private Gamemanager GameManager; 
+    [SerializeField] private Transform HandRoot;
     public GameObject Card;
     public GameObject CardWindow;
     public float speed = 5f;
@@ -19,9 +20,7 @@ public class CardDistribution: MonoBehaviour
     public List<GameObject> CurrentCardList = new List<GameObject>();
     private readonly List<GameObject> DistributedCardList = new List<GameObject>();
     private readonly Vector2 CardStartPosition = new Vector2(0f, 10f);
-    private readonly Vector2 HiddenHandCenter = new Vector2(0f, -8.5f);
-    private readonly Vector2 VisibleHandCenter = new Vector2(0f, -4.5f);
-    private bool HandCenterToggle=false;
+    private bool HandCenterToggle=true;
 
     private void Start()
     {
@@ -32,11 +31,12 @@ public class CardDistribution: MonoBehaviour
     {
         if (Keyboard.current.tabKey.wasPressedThisFrame)
         {
-            HandCenter = HandCenterToggle ? HiddenHandCenter : VisibleHandCenter;
+            HandCenter = HandCenterToggle ? new Vector2(0f, -11f) : new Vector2(0f, -8.5f);
             HandCenterToggle = !HandCenterToggle;
             UpdateHandLayout();
         }
     }
+
     IEnumerator StartCardDistribute()
     {
         switch (GameManager.CurrentFloor)
@@ -88,7 +88,7 @@ public class CardDistribution: MonoBehaviour
         CurrentCardAmount++;
 
         CurrentCardList.Add(selectedCard);
-        selectedCard.transform.SetParent(Camera.main.transform, true);
+        selectedCard.transform.SetParent(HandRoot, true);
 
         CardSystem cardSystem = selectedCard.GetComponent<CardSystem>();
         cardSystem.SetSelected(true);
