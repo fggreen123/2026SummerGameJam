@@ -5,6 +5,7 @@ using UnityEngine.UI;
 
 public class CardDistribution: MonoBehaviour
 {
+    [SerializeField] private PlayerMove Player;
     public GameObject Card;
     public GameObject CardWindow;
     public float speed = 5f;
@@ -19,6 +20,7 @@ public class CardDistribution: MonoBehaviour
     }
     public void CardDistribute(Vector2 Locate)
     {
+        Player.Moveable = false;
         GameObject CardClone = Instantiate(Card);
         CardClone.transform.position = new Vector3(0f, 10f, CardClone.transform.position.z);
         CardSystem cardSystem = InitializeCard(CardClone);
@@ -110,6 +112,7 @@ public class CardDistribution: MonoBehaviour
 
     private IEnumerator SmoothScale(Transform target, Vector3 targetScale, float duration)
     {
+        target.transform.position = Vector2.zero;
         Vector3 startScale = target.localScale;
 
         for (float t = 0; t < duration; t += Time.deltaTime)
