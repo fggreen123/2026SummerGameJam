@@ -10,9 +10,10 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b6e957a601bfaad43bc006074d38917b, type: 3}
-  m_Name: New Enemy Data
+  m_Name: RAT DB
   m_EditorClassIdentifier: Assembly-CSharp::EnemyData
-  enemyName: 
-  hp: 0
-  damage: 0
-  attackSpeed: 0
+  enemyName: RAT
+  hp: 25
+  damage: 5
+  attackSpeed: 1.5
+  moveSpeed: 1
