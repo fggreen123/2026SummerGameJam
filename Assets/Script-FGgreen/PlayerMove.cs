@@ -22,8 +22,11 @@ public class PlayerMove : MonoBehaviour
     }
     private void FixedUpdate()
     {
-        if (Keyboard.current.aKey.IsPressed() || Keyboard.current.rightArrowKey.IsPressed()) sr.flipX = false;
-        else if (Keyboard.current.dKey.IsPressed()|| Keyboard.current.leftArrowKey.IsPressed()) sr.flipX = true;
-        rb.linearVelocity = new Vector2(MoveInput.x * MoveSpeed, MoveInput.y * MoveSpeed);
+        if (Moveable)
+        {
+            if (Keyboard.current.aKey.IsPressed() || Keyboard.current.rightArrowKey.IsPressed()) sr.flipX = false;
+            else if (Keyboard.current.dKey.IsPressed() || Keyboard.current.leftArrowKey.IsPressed()) sr.flipX = true;
+            rb.linearVelocity = new Vector2(MoveInput.x * MoveSpeed, MoveInput.y * MoveSpeed);
+        } else rb.linearVelocity = new Vector2(MoveInput.x * 0, MoveInput.y * 0);
     }
 }

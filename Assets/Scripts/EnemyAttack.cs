@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using UnityEngine;
 
 [RequireComponent(typeof(Enemy))]
@@ -17,41 +16,36 @@ public sealed class EnemyAttack : MonoBehaviour
     [SerializeField]
     private Enemy enemy;
 
-    [Tooltip("°ø°İ ½ÃÀÛ À§Ä¡ÀÔ´Ï´Ù. ºñ¾î ÀÖÀ¸¸é Àû ¿ÀºêÁ§Æ® À§Ä¡¸¦ »ç¿ëÇÕ´Ï´Ù.")]
+    [Tooltip("ê³µê²© ì‹œì‘ ìœ„ì¹˜ì…ë‹ˆë‹¤. ë¹„ì–´ ìˆìœ¼ë©´ ì  ì˜¤ë¸Œì íŠ¸ ìœ„ì¹˜ë¥¼ ì‚¬ìš©í•©ë‹ˆë‹¤.")]
     [SerializeField]
     private Transform attackOrigin;
 
-    [Tooltip("ÇÃ·¹ÀÌ¾î ¹æÇâÀ¸·Î »ı¼ºµÇ´Â °ø°İ ÀÌÆåÆ® ÇÁ¸®ÆÕÀÔ´Ï´Ù.")]
+    [Tooltip("ê³µê²© ì´í™íŠ¸ í”„ë¦¬íŒ¹ì…ë‹ˆë‹¤. ë¹„ì–´ ìˆìœ¼ë©´ ê¸°ë³¸ ì‚¬ê°í˜• ì´í™íŠ¸ë¥¼ ìƒì„±í•©ë‹ˆë‹¤.")]
     [SerializeField]
     private GameObject attackEffectPrefab;
 
     [Header("Attack Shape")]
-    [Tooltip("¹æÇâ¼º °ø°İ ÆÇÁ¤ÀÇ ÆøÀÔ´Ï´Ù.")]
+    [Tooltip("ê¸°ë³¸ ê³µê²© ì´í™íŠ¸ì˜ í­ì…ë‹ˆë‹¤.")]
     [SerializeField, Min(0.01f)]
     private float attackWidth = 1f;
 
-    [Tooltip("Àû Áß½É¿¡¼­ ÀÌÆåÆ®¸¦ »ı¼ºÇÒ °Å¸®ÀÔ´Ï´Ù.")]
+    [Tooltip("ì»¤ìŠ¤í…€ ê³µê²© ì´í™íŠ¸ë¥¼ ì  ì¤‘ì‹¬ì—ì„œ ìƒì„±í•  ê±°ë¦¬ì…ë‹ˆë‹¤.")]
     [SerializeField, Min(0f)]
     private float effectSpawnDistance = 1f;
 
-    [Tooltip("°ø°İ ÀÌÆåÆ®°¡ ÀÚµ¿À¸·Î Á¦°ÅµÇ´Â ½Ã°£ÀÔ´Ï´Ù.")]
+    [Tooltip("ê³µê²© ì´í™íŠ¸ê°€ ìë™ìœ¼ë¡œ ì œê±°ë˜ëŠ” ì‹œê°„ì…ë‹ˆë‹¤.")]
     [SerializeField, Min(0f)]
     private float effectLifetime = 0.35f;
 
-    [Tooltip("ÇÃ·¹ÀÌ¾î ·¹ÀÌ¾î¸¦ ¼±ÅÃÇÕ´Ï´Ù.")]
-    [SerializeField]
-    private LayerMask targetMask;
-
     [Header("Effect Direction")]
-    [Tooltip("ÀÌÆåÆ® ÀÌ¹ÌÁö°¡ ¿øº» »óÅÂ¿¡¼­ ¹Ù¶óº¸´Â ¹æÇâÀÔ´Ï´Ù.")]
+    [Tooltip("ì»¤ìŠ¤í…€ ì´í™íŠ¸ ì´ë¯¸ì§€ê°€ ì›ë³¸ ìƒíƒœì—ì„œ ë°”ë¼ë³´ëŠ” ë°©í–¥ì…ë‹ˆë‹¤.")]
     [SerializeField]
     private EffectBaseDirection effectBaseDirection =
         EffectBaseDirection.Right;
 
     private float nextAttackTime;
 
-    private readonly HashSet<IDamageable> damagedTargets =
-        new HashSet<IDamageable>();
+    private static Sprite defaultEffectSprite;
 
     public bool IsReady =>
         enemy != null &&
@@ -83,15 +77,22 @@ public sealed class EnemyAttack : MonoBehaviour
         if (target == null || enemy == null)
             return false;
 
-        Vector2 originPosition = attackOrigin.position;
-        Vector2 targetPosition = target.position;
+        Vector2 originPosition =
+            attackOrigin != null
+                ? attackOrigin.position
+                : transform.position;
+
+        Vector2 targetPosition =
+            target.position;
 
         float distanceSqr =
             (targetPosition - originPosition).sqrMagnitude;
 
-        float range = enemy.AttackRange;
+        float range =
+            enemy.AttackRange;
 
-        return distanceSqr <= range * range;
+        return distanceSqr <=
+               range * range;
     }
 
     public bool TryAttack(Transform target)
@@ -112,9 +113,29 @@ public sealed class EnemyAttack : MonoBehaviour
         if (!IsReady)
             return false;
 
+        Player player =
+            target.GetComponent<Player>();
+
+        if (player == null)
+        {
+            player =
+                target.GetComponentInParent<Player>();
+        }
+
+        if (player == null ||
+            player.IsDead)
+        {
+            return false;
+        }
+
+        Vector2 originPosition =
+            attackOrigin != null
+                ? attackOrigin.position
+                : transform.position;
+
         Vector2 direction =
             (Vector2)target.position -
-            (Vector2)attackOrigin.position;
+            originPosition;
 
         if (direction.sqrMagnitude <= 0.0001f)
             direction = Vector2.right;
@@ -127,115 +148,163 @@ public sealed class EnemyAttack : MonoBehaviour
         nextAttackTime =
             Time.time + cooldown;
 
-        PerformAttack(direction);
+        SpawnAttackEffect(
+            originPosition,
+            direction
+        );
+
+        player.TakeDamage(
+            enemy.Damage
+        );
 
         return true;
     }
 
-    private void PerformAttack(Vector2 direction)
+    private void SpawnAttackEffect(
+        Vector2 originPosition,
+        Vector2 direction
+    )
     {
-        Vector2 originPosition =
-            attackOrigin.position;
-
         float attackAngle =
             Mathf.Atan2(
                 direction.y,
                 direction.x
             ) * Mathf.Rad2Deg;
 
-        SpawnAttackEffect(
-            originPosition,
-            direction,
-            attackAngle
-        );
+        GameObject effectInstance;
 
-        ApplyDamage(
-            originPosition,
-            direction,
-            attackAngle
+        if (attackEffectPrefab != null)
+        {
+            Vector2 spawnPosition =
+                originPosition +
+                direction * effectSpawnDistance;
+
+            float rotationOffset =
+                GetEffectRotationOffset();
+
+            Quaternion rotation =
+                Quaternion.Euler(
+                    0f,
+                    0f,
+                    attackAngle +
+                    rotationOffset
+                );
+
+            effectInstance =
+                Instantiate(
+                    attackEffectPrefab,
+                    spawnPosition,
+                    rotation
+                );
+        }
+        else
+        {
+            effectInstance =
+                CreateDefaultAttackEffect(
+                    originPosition,
+                    direction,
+                    attackAngle
+                );
+        }
+
+        float lifetime =
+            effectLifetime > 0f
+                ? effectLifetime
+                : 0.1f;
+
+        Destroy(
+            effectInstance,
+            lifetime
         );
     }
 
-    private void SpawnAttackEffect(
+    private GameObject CreateDefaultAttackEffect(
         Vector2 originPosition,
         Vector2 direction,
         float attackAngle
     )
     {
-        if (attackEffectPrefab == null)
-            return;
+        float range =
+            Mathf.Max(
+                0.01f,
+                enemy.AttackRange
+            );
 
-        Vector2 spawnPosition =
+        Vector2 center =
             originPosition +
-            direction * effectSpawnDistance;
+            direction *
+            (range * 0.5f);
 
-        float rotationOffset =
-            GetEffectRotationOffset();
+        GameObject effectObject =
+            new GameObject(
+                "Enemy Attack Effect"
+            );
 
-        Quaternion rotation =
+        effectObject.transform.position =
+            center;
+
+        effectObject.transform.rotation =
             Quaternion.Euler(
                 0f,
                 0f,
-                attackAngle + rotationOffset
+                attackAngle
             );
 
-        GameObject effectInstance =
-            Instantiate(
-                attackEffectPrefab,
-                spawnPosition,
-                rotation
+        effectObject.transform.localScale =
+            new Vector3(
+                range,
+                attackWidth,
+                1f
             );
 
-        if (effectLifetime > 0f)
-        {
-            Destroy(
-                effectInstance,
-                effectLifetime
+        SpriteRenderer renderer =
+            effectObject.AddComponent<SpriteRenderer>();
+
+        renderer.sprite =
+            GetDefaultEffectSprite();
+
+        renderer.color =
+            new Color(
+                1f,
+                0.2f,
+                0.2f,
+                0.45f
             );
-        }
+
+        renderer.sortingOrder =
+            1000;
+
+        return effectObject;
     }
 
-    private void ApplyDamage(
-        Vector2 originPosition,
-        Vector2 direction,
-        float attackAngle
-    )
+    private static Sprite GetDefaultEffectSprite()
     {
-        float range = enemy.AttackRange;
+        if (defaultEffectSprite != null)
+            return defaultEffectSprite;
 
-        Vector2 hitboxCenter =
-            originPosition +
-            direction * (range * 0.5f);
+        Texture2D texture =
+            Texture2D.whiteTexture;
 
-        Vector2 hitboxSize =
-            new Vector2(
-                range,
-                attackWidth
+        defaultEffectSprite =
+            Sprite.Create(
+                texture,
+                new Rect(
+                    0f,
+                    0f,
+                    texture.width,
+                    texture.height
+                ),
+                new Vector2(
+                    0.5f,
+                    0.5f
+                ),
+                texture.width
             );
 
-        Collider2D[] hits =
-            Physics2D.OverlapBoxAll(
-                hitboxCenter,
-                hitboxSize,
-                attackAngle,
-                targetMask
-            );
+        defaultEffectSprite.name =
+            "Runtime Default Attack Effect";
 
-        damagedTargets.Clear();
-
-        foreach (Collider2D hit in hits)
-        {
-            IDamageable damageable =
-                hit.GetComponentInParent<IDamageable>();
-
-            if (damageable == null)
-                continue;
-
-            if (!damagedTargets.Add(damageable))
-                continue;
-
-            damageable.TakeDamage(enemy.Damage);
-        }
+        return defaultEffectSprite;
     }
 
     private float GetEffectRotationOffset()
@@ -295,45 +364,13 @@ public sealed class EnemyAttack : MonoBehaviour
                 ? currentEnemy.AttackRange
                 : 2f;
 
-        Vector2 direction = origin.right;
+        Gizmos.color =
+            Color.red;
 
-        Vector2 center =
-            (Vector2)origin.position +
-            direction * (range * 0.5f);
-
-        Matrix4x4 previousMatrix =
-            Gizmos.matrix;
-
-        float angle =
-            Mathf.Atan2(
-                direction.y,
-                direction.x
-            ) * Mathf.Rad2Deg;
-
-        Gizmos.matrix =
-            Matrix4x4.TRS(
-                center,
-                Quaternion.Euler(
-                    0f,
-                    0f,
-                    angle
-                ),
-                Vector3.one
-            );
-
-        Gizmos.color = Color.red;
-
-        Gizmos.DrawWireCube(
-            Vector3.zero,
-            new Vector3(
-                range,
-                attackWidth,
-                0f
-            )
+        Gizmos.DrawWireSphere(
+            origin.position,
+            range
         );
-
-        Gizmos.matrix =
-            previousMatrix;
     }
 #endif
 }

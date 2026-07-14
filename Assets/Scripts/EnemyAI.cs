@@ -3,6 +3,7 @@ using UnityEngine;
 [RequireComponent(typeof(Rigidbody2D))]
 [RequireComponent(typeof(Collider2D))]
 [RequireComponent(typeof(Enemy))]
+[RequireComponent(typeof(EnemyAttack))]
 [DisallowMultipleComponent]
 public sealed class EnemyAI : MonoBehaviour
 {
@@ -24,6 +25,10 @@ public sealed class EnemyAI : MonoBehaviour
 
     [SerializeField]
     private Enemy enemy;
+
+    // 추가: EnemyAttack 참조
+    [SerializeField]
+    private EnemyAttack enemyAttack;
 
     [Header("Player Detection")]
     [SerializeField]
@@ -121,6 +126,7 @@ public sealed class EnemyAI : MonoBehaviour
     {
         rb = GetComponent<Rigidbody2D>();
         enemy = GetComponent<Enemy>();
+        enemyAttack = GetComponent<EnemyAttack>();
 
         ConfigureRigidbody();
     }
@@ -132,6 +138,9 @@ public sealed class EnemyAI : MonoBehaviour
 
         if (enemy == null)
             enemy = GetComponent<Enemy>();
+
+        if (enemyAttack == null)
+            enemyAttack = GetComponent<EnemyAttack>();
 
         ConfigureRigidbody();
     }
@@ -236,6 +245,16 @@ public sealed class EnemyAI : MonoBehaviour
         {
             Debug.LogError(
                 $"{name}: Enemy 컴포넌트가 없습니다.",
+                this
+            );
+
+            return false;
+        }
+
+        if (enemyAttack == null)
+        {
+            Debug.LogError(
+                $"{name}: EnemyAttack 컴포넌트가 없습니다.",
                 this
             );
 
@@ -489,6 +508,9 @@ public sealed class EnemyAI : MonoBehaviour
             desiredMoveDirection =
                 Vector2.zero;
 
+            // 같은 위치에 겹쳐 있어도 공격 시도
+            enemyAttack.TryAttack(player);
+
             return;
         }
 
@@ -508,6 +530,22 @@ public sealed class EnemyAI : MonoBehaviour
                 deltaTime
             );
 
+        /*
+         * 추가된 핵심 부분:
+         * 공격 범위 안이면 이동을 멈추고 공격합니다.
+         */
+        if (enemyAttack.IsInAttackRange(player))
+        {
+            wantsToMove = false;
+            desiredMoveDirection =
+                Vector2.zero;
+
+            enemyAttack.TryAttack(player);
+
+            return;
+        }
+
+        // 공격 범위 밖이면 기존처럼 추적
         wantsToMove = true;
 
         desiredMoveDirection =
@@ -641,8 +679,10 @@ public sealed class EnemyAI : MonoBehaviour
             Vector2.zero;
 
         if (rb != null)
+        {
             rb.linearVelocity =
                 Vector2.zero;
+        }
     }
 
 #if UNITY_EDITOR

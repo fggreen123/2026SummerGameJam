@@ -13,9 +13,13 @@ public sealed class PlayerMovement : MonoBehaviour
     [SerializeField]
     private Player player;
 
-    [Tooltip("좌우 반전할 스프라이트 렌더러입니다.")]
+    [Tooltip("좌우 반전과 통통 튀는 연출을 적용할 자식 스프라이트")]
     [SerializeField]
     private SpriteRenderer spriteRenderer;
+
+    [Tooltip("자식 이미지 오브젝트에 있는 Animator")]
+    [SerializeField]
+    private Animator animator;
 
     [Header("Movement Feel")]
     [Tooltip("목표 속도에 도달하는 속도입니다.")]
@@ -30,6 +34,25 @@ public sealed class PlayerMovement : MonoBehaviour
     [SerializeField, Min(1f)]
     private float reverseMultiplier = 1.25f;
 
+    [Header("Bounce Motion")]
+    [Tooltip("이동 중 위로 튀어 오르는 높이")]
+    [SerializeField, Min(0f)]
+    private float bounceHeight = 0.08f;
+
+    [Tooltip("통통 튀는 속도")]
+    [SerializeField, Min(0f)]
+    private float bounceSpeed = 10f;
+
+    [Header("Animator Parameters")]
+    [SerializeField]
+    private string isMovingParameter = "IsMoving";
+
+    [SerializeField]
+    private string moveXParameter = "MoveX";
+
+    [SerializeField]
+    private string moveYParameter = "MoveY";
+
     public Vector2 MoveInput { get; private set; }
 
     public Vector2 LastMoveDirection { get; private set; } =
@@ -41,11 +64,22 @@ public sealed class PlayerMovement : MonoBehaviour
 
     private InputAction moveAction;
 
+    private Transform spriteTransform;
+    private Vector3 spriteStartLocalPosition;
+
+    private float bounceTime;
+    private bool canBounce;
+
+    private int isMovingHash;
+    private int moveXHash;
+    private int moveYHash;
+
     private void Reset()
     {
         rb = GetComponent<Rigidbody2D>();
         player = GetComponent<Player>();
         spriteRenderer = GetComponentInChildren<SpriteRenderer>();
+        animator = GetComponentInChildren<Animator>();
     }
 
     private void Awake()
@@ -59,6 +93,26 @@ public sealed class PlayerMovement : MonoBehaviour
         if (spriteRenderer == null)
             spriteRenderer = GetComponentInChildren<SpriteRenderer>();
 
+        if (animator == null)
+            animator = GetComponentInChildren<Animator>();
+
+        if (spriteRenderer != null)
+        {
+            spriteTransform =
+                spriteRenderer.transform;
+
+            canBounce =
+                spriteTransform != transform &&
+                spriteTransform.IsChildOf(transform);
+
+            if (canBounce)
+            {
+                spriteStartLocalPosition =
+                    spriteTransform.localPosition;
+            }
+        }
+
+        CacheAnimatorHashes();
         CreateMoveAction();
     }
 
@@ -72,9 +126,13 @@ public sealed class PlayerMovement : MonoBehaviour
         moveAction?.Disable();
 
         MoveInput = Vector2.zero;
+        bounceTime = 0f;
 
         if (rb != null)
             rb.linearVelocity = Vector2.zero;
+
+        ResetBouncePosition();
+        ResetAnimation();
     }
 
     private void OnDestroy()
@@ -86,7 +144,8 @@ public sealed class PlayerMovement : MonoBehaviour
     {
         moveAction = new InputAction(
             name: "Move",
-            type: InputActionType.Value
+            type: InputActionType.Value,
+            expectedControlType: "Vector2"
         );
 
         moveAction.AddCompositeBinding("2DVector")
@@ -96,6 +155,24 @@ public sealed class PlayerMovement : MonoBehaviour
             .With("Right", "<Keyboard>/d");
     }
 
+    private void CacheAnimatorHashes()
+    {
+        isMovingHash =
+            Animator.StringToHash(
+                isMovingParameter
+            );
+
+        moveXHash =
+            Animator.StringToHash(
+                moveXParameter
+            );
+
+        moveYHash =
+            Animator.StringToHash(
+                moveYParameter
+            );
+    }
+
     private void Update()
     {
         if (player == null ||
@@ -103,36 +180,25 @@ public sealed class PlayerMovement : MonoBehaviour
             player.IsDead)
         {
             MoveInput = Vector2.zero;
+            UpdateAnimation();
             return;
         }
 
-        MoveInput = moveAction.ReadValue<Vector2>();
+        MoveInput =
+            moveAction.ReadValue<Vector2>();
 
         if (MoveInput.sqrMagnitude > 1f)
             MoveInput = MoveInput.normalized;
 
         if (MoveInput.sqrMagnitude > 0.001f)
-            LastMoveDirection = MoveInput.normalized;
-
-        UpdateSpriteFlip();
-    }
-    private void UpdateSpriteFlip()
         {
-            if (spriteRenderer == null)
-                return;
-
-            if (MoveInput.x > 0.001f)
-            {
-                // D 입력: 좌우 반전
-                spriteRenderer.flipX = true;
-            }
-            else if (MoveInput.x < -0.001f)
-            {
-                // A 입력: 원래 방향
-                spriteRenderer.flipX = false;
-            }
+            LastMoveDirection =
+                MoveInput.normalized;
         }
 
+        UpdateSpriteFlip();
+        UpdateAnimation();
+    }
 
     private void FixedUpdate()
     {
@@ -143,22 +209,27 @@ public sealed class PlayerMovement : MonoBehaviour
             player.Data == null ||
             player.IsDead)
         {
-            rb.linearVelocity = Vector2.zero;
+            rb.linearVelocity =
+                Vector2.zero;
+
             return;
         }
 
         Vector2 targetVelocity =
-            MoveInput * player.MoveSpeed;
+            MoveInput *
+            player.MoveSpeed;
 
         float changeSpeed;
 
         if (MoveInput.sqrMagnitude <= 0.001f)
         {
-            changeSpeed = deceleration;
+            changeSpeed =
+                deceleration;
         }
         else
         {
-            changeSpeed = acceleration;
+            changeSpeed =
+                acceleration;
 
             bool isReversing =
                 rb.linearVelocity.sqrMagnitude > 0.001f &&
@@ -168,23 +239,193 @@ public sealed class PlayerMovement : MonoBehaviour
                 ) < 0f;
 
             if (isReversing)
-                changeSpeed *= reverseMultiplier;
+            {
+                changeSpeed *=
+                    reverseMultiplier;
+            }
         }
 
         rb.linearVelocity =
             Vector2.MoveTowards(
                 rb.linearVelocity,
                 targetVelocity,
-                changeSpeed * Time.fixedDeltaTime
+                changeSpeed *
+                Time.fixedDeltaTime
             );
+    }
+
+    private void LateUpdate()
+    {
+        UpdateBounceMotion();
+    }
+
+    private void UpdateSpriteFlip()
+    {
+        if (spriteRenderer == null)
+            return;
+
+        if (MoveInput.x > 0.001f)
+        {
+            spriteRenderer.flipX =
+                true;
+        }
+        else if (MoveInput.x < -0.001f)
+        {
+            spriteRenderer.flipX =
+                false;
+        }
+    }
+
+    private void UpdateAnimation()
+    {
+        if (animator == null)
+            return;
+
+        bool moving =
+            MoveInput.sqrMagnitude >
+            0.001f;
+
+        animator.SetBool(
+            isMovingHash,
+            moving
+        );
+
+        if (!moving)
+            return;
+
+        animator.SetFloat(
+            moveXHash,
+            MoveInput.x
+        );
+
+        animator.SetFloat(
+            moveYHash,
+            MoveInput.y
+        );
+    }
+
+    private void ResetAnimation()
+    {
+        if (animator == null)
+            return;
+
+        animator.SetBool(
+            isMovingHash,
+            false
+        );
+
+        animator.SetFloat(
+            moveXHash,
+            0f
+        );
+
+        animator.SetFloat(
+            moveYHash,
+            0f
+        );
+    }
+
+    private void UpdateBounceMotion()
+    {
+        if (!canBounce ||
+            spriteTransform == null)
+        {
+            return;
+        }
+
+        bool moving =
+            MoveInput.sqrMagnitude > 0.001f &&
+            rb != null &&
+            rb.linearVelocity.sqrMagnitude > 0.01f;
+
+        if (!moving)
+        {
+            bounceTime = 0f;
+            ResetBouncePosition();
+            return;
+        }
+
+        bounceTime +=
+            Time.deltaTime *
+            bounceSpeed;
+
+        float height =
+            Mathf.Abs(
+                Mathf.Sin(bounceTime)
+            ) * bounceHeight;
+
+        spriteTransform.localPosition =
+            spriteStartLocalPosition +
+            Vector3.up * height;
+    }
+
+    private void ResetBouncePosition()
+    {
+        if (!canBounce ||
+            spriteTransform == null)
+        {
+            return;
+        }
+
+        spriteTransform.localPosition =
+            spriteStartLocalPosition;
     }
 
 #if UNITY_EDITOR
     private void OnValidate()
     {
-        acceleration = Mathf.Max(0f, acceleration);
-        deceleration = Mathf.Max(0f, deceleration);
-        reverseMultiplier = Mathf.Max(1f, reverseMultiplier);
+        acceleration =
+            Mathf.Max(
+                0f,
+                acceleration
+            );
+
+        deceleration =
+            Mathf.Max(
+                0f,
+                deceleration
+            );
+
+        reverseMultiplier =
+            Mathf.Max(
+                1f,
+                reverseMultiplier
+            );
+
+        bounceHeight =
+            Mathf.Max(
+                0f,
+                bounceHeight
+            );
+
+        bounceSpeed =
+            Mathf.Max(
+                0f,
+                bounceSpeed
+            );
+
+        if (string.IsNullOrWhiteSpace(
+            isMovingParameter))
+        {
+            isMovingParameter =
+                "IsMoving";
+        }
+
+        if (string.IsNullOrWhiteSpace(
+            moveXParameter))
+        {
+            moveXParameter =
+                "MoveX";
+        }
+
+        if (string.IsNullOrWhiteSpace(
+            moveYParameter))
+        {
+            moveYParameter =
+                "MoveY";
+        }
+
+        CacheAnimatorHashes();
     }
 #endif
 }

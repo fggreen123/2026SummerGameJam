@@ -7,7 +7,8 @@ public enum CardSuit
     Spade,
     Club,
     Heart,
-    Diamond
+    Diamond,
+    Joker
 }
 
 [RequireComponent(typeof(Button))]
@@ -16,13 +17,16 @@ public enum CardSuit
 public class CardSystem : MonoBehaviour
 {
     private const float DragScale = 0.5f;
-    private const float EnemyTargetDistance = 2f;
+    private const float TargetDistance = 2f;
 
     private CardDistribution cardDistribution;
     private Button button;
     private Camera mainCamera;
     private SpriteRenderer spriteRenderer;
-    private Enemy targetEnemy;
+    private SpriteRenderer suitRenderer;
+    private SpriteRenderer numberRenderer;
+    private GameObject target;
+    [SerializeField] private CameraShake ShakeCamera;
     private bool selected;
     private bool dragging;
     private Vector3 dragOffset;
@@ -31,7 +35,6 @@ public class CardSystem : MonoBehaviour
     public Coroutine MoveCoroutine { get; set; }
     public CardSuit Suit { get; private set; }
     public int Rank { get; private set; }
-
     private string RankName => Rank switch
     {
         1 => "A",
@@ -40,14 +43,24 @@ public class CardSystem : MonoBehaviour
         13 => "K",
         _ => Rank.ToString()
     };
+    private string CardName => Suit == CardSuit.Joker ? "Joker" : $"{Suit} {RankName}";
+    private string SuitName => Suit switch
+    {
+        CardSuit.Spade => "스페이드",
+        CardSuit.Club => "클로버",
+        CardSuit.Heart => "하트",
+        CardSuit.Diamond => "다이아몬드",
+        _ => "조커"
+    };
 
-    public void Initialize(CardDistribution distribution, CardSuit suit, int rank)
+    public void Initialize(CardDistribution distribution, CardSuit suit, int rank, Sprite suitSprite, Sprite numberSprite)
     {
         cardDistribution = distribution;
         Suit = suit;
         Rank = rank;
 
-        gameObject.name = $"{Suit} {RankName}";
+        SetCardVisuals(suitSprite, numberSprite);
+        gameObject.name = CardName;
     }
 
     public void SetSelected(bool value)
@@ -59,7 +72,10 @@ public class CardSystem : MonoBehaviour
     {
         button = GetComponent<Button>();
         mainCamera = Camera.main;
+        ShakeCamera = mainCamera.GetComponent<CameraShake>();
         spriteRenderer = GetComponent<SpriteRenderer>();
+        suitRenderer = CreateCardRenderer("Suit");
+        numberRenderer = CreateCardRenderer("Number");
         cardScale = transform.localScale;
         RegisterButtonClick();
     }
@@ -108,7 +124,7 @@ public class CardSystem : MonoBehaviour
         if (dragging)
         {
             transform.position = GetMouseWorldPosition() + dragOffset;
-            UpdateTargetEnemy();
+            UpdateTarget();
         }
     }
 
@@ -120,8 +136,12 @@ public class CardSystem : MonoBehaviour
         }
 
         dragging = false;
-        AttackTargetEnemy();
-        SetTargetEnemy(null);
+        if (UseCard())
+        {
+            return;
+        }
+
+        SetTarget(null);
         transform.localScale = cardScale;
         cardDistribution.SnapCardToHand(gameObject);
     }
@@ -140,12 +160,42 @@ public class CardSystem : MonoBehaviour
         }
 
         cardDistribution.CardSelected(gameObject);
-        Debug.Log($"Selected Card: {Suit} {RankName} ({Rank})", this);
+        Debug.Log($"Selected Card: {CardName} ({Rank})", this);
     }
 
     public void SetSortingOrder(int sortingOrder)
     {
         spriteRenderer.sortingOrder = sortingOrder;
+        suitRenderer.sortingOrder = sortingOrder + 1;
+        numberRenderer.sortingOrder = sortingOrder + 1;
+    }
+
+    private SpriteRenderer CreateCardRenderer(string objectName)
+    {
+        SpriteRenderer renderer = new GameObject(objectName).AddComponent<SpriteRenderer>();
+        renderer.transform.SetParent(transform, false);
+        renderer.sortingLayerID = spriteRenderer.sortingLayerID;
+        renderer.sortingOrder = spriteRenderer.sortingOrder + 1;
+        return renderer;
+    }
+
+    private void SetCardVisuals(Sprite suitSprite, Sprite numberSprite)
+    {
+        suitRenderer.sprite = suitSprite;
+        numberRenderer.sprite = numberSprite;
+        suitRenderer.transform.localScale = Vector3.one;
+
+        if (Suit == CardSuit.Joker)
+        {
+            suitRenderer.transform.localPosition = -suitSprite.bounds.center;
+            numberRenderer.transform.localPosition = new Vector2(-0.065f, 0f);
+            numberRenderer.transform.localScale = Vector3.one;
+            return;
+        }
+
+        suitRenderer.transform.localPosition = Vector3.zero;
+        numberRenderer.transform.localPosition = new Vector2(Rank == 10 ? -0.065f : -0.075f, 0.12f);
+        numberRenderer.transform.localScale = Vector3.one;
     }
 
     private Vector3 GetMouseWorldPosition()
@@ -155,65 +205,108 @@ public class CardSystem : MonoBehaviour
         return mainCamera.ScreenToWorldPoint(screenPosition);
     }
 
-    private void UpdateTargetEnemy()
+    private void UpdateTarget()
     {
-        Enemy closestEnemy = null;
-        float closestDistance = EnemyTargetDistance;
+        GameObject closestTarget = null;
+        float closestDistance = TargetDistance;
 
-        foreach (Collider2D hit in Physics2D.OverlapCircleAll(transform.position, EnemyTargetDistance))
+        foreach (Collider2D hit in Physics2D.OverlapCircleAll(transform.position, TargetDistance))
         {
-            if (!hit.CompareTag("Enemy") || !hit.TryGetComponent(out Enemy enemy))
+            if (!CanTarget(hit))
             {
                 continue;
             }
 
-            float distance = Vector2.Distance(transform.position, enemy.transform.position);
+            float distance = Vector2.Distance(transform.position, hit.transform.position);
             if (distance >= closestDistance)
             {
                 continue;
             }
 
             closestDistance = distance;
-            closestEnemy = enemy;
+            closestTarget = hit.gameObject;
         }
 
-        SetTargetEnemy(closestEnemy);
+        SetTarget(closestTarget);
     }
 
-    private void SetTargetEnemy(Enemy enemy)
+    private bool CanTarget(Collider2D hit)
     {
-        if (targetEnemy == enemy)
+        return hit.CompareTag("Enemy") ||
+               (Suit != CardSuit.Joker && hit.CompareTag("Player"));
+    }
+
+    private void SetTarget(GameObject newTarget)
+    {
+        if (target == newTarget)
         {
             return;
         }
 
-        if (targetEnemy != null)
+        if (target != null)
         {
-            SetEnemyOutline(targetEnemy, false);
+            SetOutline(target, false);
         }
 
-        targetEnemy = enemy;
+        target = newTarget;
 
-        if (targetEnemy != null)
+        if (target != null)
         {
-            SetEnemyOutline(targetEnemy, true);
+            SetOutline(target, true);
         }
     }
 
-    private void SetEnemyOutline(Enemy enemy, bool visible)
+    private void SetOutline(GameObject cardTarget, bool visible)
     {
-        EnemyOutline eo;
-        eo = enemy.GetComponent<EnemyOutline>();
-        eo.outlineSize = visible ? 16 : 0;
-    }
-
-    private void AttackTargetEnemy()
-    {
-        if (targetEnemy == null || Rank >= 11)
+        if (cardTarget.CompareTag("Enemy"))
         {
+            cardTarget.GetComponent<EnemyOutline>().outlineSize = visible ? 16 : 0;
             return;
         }
 
-        targetEnemy.TakeDamage(Rank);
+        cardTarget.GetComponent<PlayerOutline>().outlineSize = visible ? 1 : 0;
+    }
+
+    private bool UseCard()
+    {
+        if (target == null)
+        {
+            return false;
+        }
+        GameObject usedTarget = target;
+        ICardEffectTarget cardTarget = usedTarget.GetComponent<ICardEffectTarget>();
+
+        LogCardUse(usedTarget);
+        SetTarget(null);
+        switch (Suit)
+        {
+            case CardSuit.Spade:
+                cardTarget.ApplySpade(Rank);
+                ShakeCamera.ShakeCamera(0.2f, 0.15f);
+                break;
+            case CardSuit.Club:
+                cardTarget.ApplyClub(Rank);
+                break;
+            case CardSuit.Heart:
+                cardTarget.ApplyHeart(Rank);
+                break;
+            case CardSuit.Diamond:
+                cardTarget.ApplyDiamond(Rank);
+                break;
+            case CardSuit.Joker:
+                usedTarget.GetComponent<Enemy>().ApplyJoker();
+                break;
+        }
+        cardDistribution.RemoveCard(gameObject);
+        cardDistribution.SetPlayerMoveable(true);
+        return true;
+    }
+
+    private void LogCardUse(GameObject usedTarget)
+    {
+        string targetName = usedTarget.CompareTag("Enemy") ? "적" : "플레이어";
+        string rankName = Suit == CardSuit.Joker ? string.Empty : $" {RankName}";
+
+        Debug.Log($"{targetName}에게 {SuitName}{rankName} 사용!", this);
     }
 }

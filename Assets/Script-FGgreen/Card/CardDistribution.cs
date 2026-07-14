@@ -9,6 +9,9 @@ public class CardDistribution: MonoBehaviour
     [SerializeField] private PlayerMove Player;
     [SerializeField] private Gamemanager GameManager; 
     [SerializeField] private Transform HandRoot;
+    [SerializeField] private Gamemanager gamemanager;
+    public Sprite[] CardSuits = { };
+    public Sprite[] CardNumbers = { };
     public GameObject Card;
     public GameObject CardWindow;
     public float speed = 5f;
@@ -27,17 +30,22 @@ public class CardDistribution: MonoBehaviour
         CardSuit.Heart,
         CardSuit.Diamond
     };
+    private int jokerCardIndex;
     private bool HandCenterToggle=true;
 
     private void Start()
     {
+        jokerCardIndex = Random.value < 0.05f
+            ? Random.Range(0, CardSuitOrder.Length)
+            : -1;
         StartCoroutine(StartCardDistribute());
     }
 
     private void Update()
     {
-        if (Keyboard.current.tabKey.wasPressedThisFrame)
+        if (Keyboard.current.tabKey.wasPressedThisFrame && CurrentCardList.Count > 0)
         {
+            Player.Moveable = HandCenterToggle ? true : false;
             HandCenter = HandCenterToggle ? new Vector2(0f, -11f) : new Vector2(0f, -8.5f);
             HandCenterToggle = !HandCenterToggle;
             UpdateHandLayout();
@@ -59,6 +67,7 @@ public class CardDistribution: MonoBehaviour
                 break;
         }
         CurrentCardAmount = 0;
+        Player.Moveable = false;
         GameObject CardWindowClone = Instantiate(CardWindow);
         Vector3 targetScale = CardWindowClone.transform.localScale;
         CardWindowClone.transform.localScale = Vector3.zero;
@@ -76,9 +85,13 @@ public class CardDistribution: MonoBehaviour
         yield return new WaitUntil(() => CurrentCardAmount == TargetCardAmount);
         HideUnselectedCards();
         StartCoroutine(SmoothScale(CardWindowClone.transform, Vector2.zero, 1f));
-        yield return new WaitForSeconds(2f);
-        Destroy(CardWindowClone);
+        StartCoroutine(SmoothMove(CardWindowClone, new Vector2(0, 11), null));
+        HandCenterToggle = false;
+        HandCenter = new Vector2(0f, -11f);
+        UpdateHandLayout();
         Player.Moveable = true;
+        yield return new WaitForSeconds(3f);
+        Destroy(CardWindowClone);
     }
     public void CardDistribute(Vector2 Locate)
     {
@@ -87,9 +100,13 @@ public class CardDistribution: MonoBehaviour
         CardClone.transform.position = new Vector2(0, 10f);
 
         CardSystem cardSystem = CardClone.GetComponent<CardSystem>();
-        CardSuit suit = CardSuitOrder[DistributedCardList.Count];
+        int cardIndex = DistributedCardList.Count;
+        bool isJoker = cardIndex == jokerCardIndex;
+        CardSuit suit = isJoker ? CardSuit.Joker : CardSuitOrder[cardIndex];
+        int rank = isJoker ? 14 : Random.Range(1, 14);
+
         DistributedCardList.Add(CardClone);
-        cardSystem.Initialize(this, suit, Random.Range(1, 14));
+        cardSystem.Initialize(this, suit, rank, CardSuits[(int)suit], CardNumbers[rank - 1]);
         MoveCard(CardClone, Locate);
     }
 
@@ -109,8 +126,14 @@ public class CardDistribution: MonoBehaviour
         UpdateHandLayout();
     }
 
+    public void SetPlayerMoveable(bool moveable)
+    {
+        Player.Moveable = moveable;
+    }
+
     private void UpdateHandLayout()
     {
+        if (CurrentCardList.Count <= 0) return;
         for (int i = 0; i < CurrentCardList.Count; i++)
         {
             GameObject card = CurrentCardList[i];
@@ -141,6 +164,14 @@ public class CardDistribution: MonoBehaviour
         StopCardMovement(cardSystem);
         cardSystem.SetSortingOrder(10 + (index * 2));
         card.transform.localPosition = GetHandPosition(index);
+    }
+
+    public void RemoveCard(GameObject card)
+    {
+        StopCardMovement(card.GetComponent<CardSystem>());
+        CurrentCardList.Remove(card);
+        Destroy(card);
+        UpdateHandLayout();
     }
 
     private void HideUnselectedCards()
@@ -187,9 +218,13 @@ public class CardDistribution: MonoBehaviour
 
     private IEnumerator SmoothMove(GameObject target, Vector2 location, CardSystem cardSystem)
     {
-        Vector3 targetPosition = new Vector3(location.x, location.y, target.transform.localPosition.z);
+        if (target == null)
+        {
+            yield break;
+        }
 
-        while (Vector2.Distance(target.transform.localPosition, targetPosition) > 0.01f)
+        Vector3 targetPosition = new Vector3(location.x, location.y, target.transform.localPosition.z);
+        while (target != null && Vector2.Distance(target.transform.localPosition, targetPosition) > 0.01f)
         {
             target.transform.localPosition = Vector2.Lerp(
                 target.transform.localPosition,
@@ -200,14 +235,26 @@ public class CardDistribution: MonoBehaviour
             yield return null;
         }
 
+        if (target == null)
+        {
+            yield break;
+        }
+
         target.transform.localPosition = targetPosition;
-        cardSystem.MoveCoroutine = null;
+        if (cardSystem != null)
+        {
+            cardSystem.MoveCoroutine = null;
+        }
     }
 
     private IEnumerator ReturnAndDestroy(GameObject card, CardSystem cardSystem)
     {
         yield return StartCoroutine(SmoothMove(card, new Vector2(0,10f), cardSystem));
+        CurrentCardList.Remove(card);
         Destroy(card);
+        Player.Moveable = true;
+        HandCenter = new Vector2(0f, -11f);
+        UpdateHandLayout();
     }
 
     private IEnumerator SmoothScale(Transform target, Vector3 targetScale, float duration)
@@ -224,4 +271,3 @@ public class CardDistribution: MonoBehaviour
         target.localScale = targetScale;
     }
 }
- 
