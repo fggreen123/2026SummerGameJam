@@ -1,6 +1,5 @@
 using System.Collections;
 using System.Collections.Generic;
-using JetBrains.Annotations;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
@@ -17,10 +16,17 @@ public class CardDistribution: MonoBehaviour
     public int CurrentCardAmount;
     public Vector2 HandCenter = new Vector2(0f, -8.5f);
     public float HandSpacing = 1.8f;
+    public float HoverHeight = 0.7f;
 
     public List<GameObject> CurrentCardList = new List<GameObject>();
     private readonly List<GameObject> DistributedCardList = new List<GameObject>();
-    private readonly Vector2 CardStartPosition = new Vector2(0f, 10f);
+    private readonly CardSuit[] CardSuitOrder =
+    {
+        CardSuit.Spade,
+        CardSuit.Club,
+        CardSuit.Heart,
+        CardSuit.Diamond
+    };
     private bool HandCenterToggle=true;
 
     private void Start()
@@ -78,10 +84,13 @@ public class CardDistribution: MonoBehaviour
     {
         Player.Moveable = false;
         GameObject CardClone = Instantiate(Card);
-        CardClone.transform.position = new Vector3(CardStartPosition.x, CardStartPosition.y, CardClone.transform.position.z);
+        CardClone.transform.position = new Vector2(0, 10f);
+
+        CardSystem cardSystem = CardClone.GetComponent<CardSystem>();
+        CardSuit suit = CardSuitOrder[DistributedCardList.Count];
         DistributedCardList.Add(CardClone);
-        CardSystem cardSystem = InitializeCard(CardClone);
-        cardSystem.MoveCoroutine = StartCoroutine(SmoothMove(CardClone, Locate, cardSystem));
+        cardSystem.Initialize(this, suit, Random.Range(1, 14));
+        MoveCard(CardClone, Locate);
     }
 
     public void CardSelected(GameObject selectedCard)
@@ -102,25 +111,36 @@ public class CardDistribution: MonoBehaviour
 
     private void UpdateHandLayout()
     {
-        int cardCount = CurrentCardList.Count;
-        float startX = HandCenter.x - (HandSpacing * (cardCount - 1) * 0.5f);
-
-        for (int i = 0; i < cardCount; i++)
+        for (int i = 0; i < CurrentCardList.Count; i++)
         {
             GameObject card = CurrentCardList[i];
-
-            SpriteRenderer spriteRenderer = card.GetComponent<SpriteRenderer>();
-            spriteRenderer.sortingOrder = i + 10;
-
-            Vector2 targetPosition = new Vector2(startX + (HandSpacing * i), HandCenter.y);
             CardSystem cardSystem = card.GetComponent<CardSystem>();
-            if (cardSystem.MoveCoroutine != null)
-            {
-                StopCoroutine(cardSystem.MoveCoroutine);
-            }
 
-            cardSystem.MoveCoroutine = StartCoroutine(SmoothMove(card, targetPosition, cardSystem));
+            cardSystem.SetSortingOrder(10 + (i * 2));
+            MoveCard(card, GetHandPosition(i));
         }
+    }
+
+    public void SetCardHovered(GameObject card, bool hovered)
+    {
+        int index = CurrentCardList.IndexOf(card);
+        Vector2 targetPosition = GetHandPosition(index) + Vector2.up * (hovered ? HoverHeight : 0f);
+        MoveCard(card, targetPosition);
+    }
+
+    public void StopCardMovement(GameObject card)
+    {
+        StopCardMovement(card.GetComponent<CardSystem>());
+    }
+
+    public void SnapCardToHand(GameObject card)
+    {
+        int index = CurrentCardList.IndexOf(card);
+        CardSystem cardSystem = card.GetComponent<CardSystem>();
+
+        StopCardMovement(cardSystem);
+        cardSystem.SetSortingOrder(10 + (index * 2));
+        card.transform.localPosition = GetHandPosition(index);
     }
 
     private void HideUnselectedCards()
@@ -136,20 +156,33 @@ public class CardDistribution: MonoBehaviour
             Button button = card.GetComponent<Button>();
             button.interactable = false;
 
-            if (cardSystem.MoveCoroutine != null)
-            {
-                StopCoroutine(cardSystem.MoveCoroutine);
-            }
-
+            StopCardMovement(cardSystem);
             cardSystem.MoveCoroutine = StartCoroutine(ReturnAndDestroy(card, cardSystem));
         }
     }
 
-    private CardSystem InitializeCard(GameObject card)
+    private Vector2 GetHandPosition(int index)
+    {
+        float startX = HandCenter.x - (HandSpacing * (CurrentCardList.Count - 1) * 0.5f);
+        return new Vector2(startX + (HandSpacing * index), HandCenter.y);
+    }
+
+    private void MoveCard(GameObject card, Vector2 targetPosition)
     {
         CardSystem cardSystem = card.GetComponent<CardSystem>();
-        cardSystem.Initialize(this);
-        return cardSystem;
+        StopCardMovement(cardSystem);
+        cardSystem.MoveCoroutine = StartCoroutine(SmoothMove(card, targetPosition, cardSystem));
+    }
+
+    private void StopCardMovement(CardSystem cardSystem)
+    {
+        if (cardSystem.MoveCoroutine == null)
+        {
+            return;
+        }
+
+        StopCoroutine(cardSystem.MoveCoroutine);
+        cardSystem.MoveCoroutine = null;
     }
 
     private IEnumerator SmoothMove(GameObject target, Vector2 location, CardSystem cardSystem)
@@ -173,7 +206,7 @@ public class CardDistribution: MonoBehaviour
 
     private IEnumerator ReturnAndDestroy(GameObject card, CardSystem cardSystem)
     {
-        yield return StartCoroutine(SmoothMove(card, CardStartPosition, cardSystem));
+        yield return StartCoroutine(SmoothMove(card, new Vector2(0,10f), cardSystem));
         Destroy(card);
     }
 

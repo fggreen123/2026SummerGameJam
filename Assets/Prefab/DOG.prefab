@@ -15,6 +15,7 @@ GameObject:
   - component: {fileID: 3830196306767759136}
   - component: {fileID: 5984270730922354893}
   - component: {fileID: 2122069612739629400}
+  - component: {fileID: 7399628246518401855}
   m_Layer: 3
   m_Name: DOG
   m_TagString: Enemy
@@ -234,6 +235,20 @@ Rigidbody2D:
   m_SleepingMode: 0
   m_CollisionDetection: 1
   m_Constraints: 4
+--- !u!114 &7399628246518401855
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5535520201703605794}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dfe124645fadd324ab5fb673cb073314, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyOutline
+  color: {r: 1, g: 0, b: 0, a: 1}
+  outlineSize: 2
 --- !u!1 &9184922627614362580
 GameObject:
   m_ObjectHideFlags: 0

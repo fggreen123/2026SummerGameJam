@@ -2,6 +2,7 @@ using System;
 using UnityEngine;
 
 [DisallowMultipleComponent]
+[RequireComponent(typeof(EnemyOutline))]
 public sealed class Enemy : MonoBehaviour, IDamageable
 {
     [Header("Enemy Data")]
