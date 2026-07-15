@@ -25,6 +25,7 @@ public class CardDistribution: MonoBehaviour
 
     public List<GameObject> CurrentCardList = new List<GameObject>();
     private readonly List<GameObject> DistributedCardList = new List<GameObject>();
+    private static readonly List<CardData> PreservedHand = new List<CardData>();
     private readonly CardSuit[] CardSuitOrder =
     {
         CardSuit.Spade,
@@ -45,6 +46,7 @@ public class CardDistribution: MonoBehaviour
 
         CardInformationText.Hide();
         mainCamera = Camera.main;
+        RestoreHand();
         jokerCardIndex = Random.value < 0.05f
             ? Random.Range(0, CardSuitOrder.Length)
             : -1;
@@ -162,17 +164,53 @@ public class CardDistribution: MonoBehaviour
     public void CardSelected(GameObject selectedCard)
     {
         CurrentCardAmount++;
-
-        CurrentCardList.Add(selectedCard);
-        selectedCard.transform.SetParent(HandRoot, true);
-
-        CardSystem cardSystem = selectedCard.GetComponent<CardSystem>();
-        cardSystem.SetSelected(true);
-
-        Button button = selectedCard.GetComponent<Button>();
-        button.interactable = false;
-
+        AddCardToHand(selectedCard);
         UpdateHandLayout();
+    }
+
+    public void PreserveHandForNextScene()
+    {
+        PreservedHand.Clear();
+
+        foreach (GameObject card in CurrentCardList)
+        {
+            CardSystem cardSystem = card.GetComponent<CardSystem>();
+            PreservedHand.Add(new CardData(cardSystem.Suit, cardSystem.Rank));
+        }
+    }
+
+    private void RestoreHand()
+    {
+        if (PreservedHand.Count == 0)
+        {
+            return;
+        }
+
+        foreach (CardData cardData in PreservedHand)
+        {
+            GameObject card = Instantiate(Card);
+            card.GetComponent<CardSystem>().Initialize(
+                this,
+                cardData.Suit,
+                cardData.Rank,
+                CardSuits[(int)cardData.Suit],
+                CardNumbers[cardData.Rank - 1]
+            );
+            AddCardToHand(card);
+        }
+
+        PreservedHand.Clear();
+        HandCenterToggle = false;
+        HandCenter = new Vector2(0f, -11f);
+        UpdateHandLayout();
+    }
+
+    private void AddCardToHand(GameObject card)
+    {
+        CurrentCardList.Add(card);
+        card.transform.SetParent(HandRoot, true);
+        card.GetComponent<CardSystem>().SetSelected(true);
+        card.GetComponent<Button>().interactable = false;
     }
 
     public void SetPlayerMoveable(bool moveable)
@@ -318,5 +356,17 @@ public class CardDistribution: MonoBehaviour
         }
 
         target.localScale = targetScale;
+    }
+
+    private readonly struct CardData
+    {
+        public readonly CardSuit Suit;
+        public readonly int Rank;
+
+        public CardData(CardSuit suit, int rank)
+        {
+            Suit = suit;
+            Rank = rank;
+        }
     }
 }
