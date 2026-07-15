@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 [DisallowMultipleComponent]
 public sealed class Player : MonoBehaviour, ICardEffectTarget
@@ -434,6 +435,22 @@ public sealed class Player : MonoBehaviour, ICardEffectTarget
             );
 
         Died?.Invoke();
+
+        if (!SceneManager.GetSceneByName("GOScene").isLoaded)
+        {
+            var loadOperation = SceneManager.LoadSceneAsync("GOScene", LoadSceneMode.Additive);
+
+            loadOperation.completed += (operation) =>
+            {
+                FadeGO fadeScript = FindAnyObjectByType<FadeGO>();
+
+                if (fadeScript != null)
+                {
+                    fadeScript.gameObject.SetActive(true);
+                }
+            };
+        }
+
 
         Debug.Log(
             $"{PlayerName}가 사망했습니다.",

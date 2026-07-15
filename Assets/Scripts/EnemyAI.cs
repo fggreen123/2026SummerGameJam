@@ -26,9 +26,33 @@ public sealed class EnemyAI : MonoBehaviour
     [SerializeField]
     private Enemy enemy;
 
-    // 추가: EnemyAttack 참조
     [SerializeField]
     private EnemyAttack enemyAttack;
+
+    [Tooltip("적 애니메이션을 재생하는 Animator입니다.")]
+    [SerializeField]
+    private Animator animator;
+
+    [Tooltip("좌우 반전할 적의 SpriteRenderer입니다.")]
+    [SerializeField]
+    private SpriteRenderer spriteRenderer;
+
+    [Header("Animation")]
+    [Tooltip("Animator에 만든 이동 Bool 파라미터 이름입니다.")]
+    [SerializeField]
+    private string movingParameterName = "isMoving";
+
+    [Tooltip("Animator에 만든 공격 Trigger 파라미터 이름입니다.")]
+    [SerializeField]
+    private string attackTriggerName = "Attack";
+
+    [Tooltip("공격 애니메이션을 다시 실행할 수 있는 간격입니다.")]
+    [SerializeField, Min(0.01f)]
+    private float attackAnimationInterval = 1f;
+
+    [Tooltip("이 속도보다 빠르게 움직일 때 이동 애니메이션을 재생합니다.")]
+    [SerializeField, Min(0f)]
+    private float movementAnimationThreshold = 0.05f;
 
     [Header("Player Detection")]
     [SerializeField]
@@ -106,7 +130,9 @@ public sealed class EnemyAI : MonoBehaviour
 
     public bool IsMoving =>
         rb != null &&
-        rb.linearVelocity.sqrMagnitude > 0.01f;
+        rb.linearVelocity.sqrMagnitude >
+        movementAnimationThreshold *
+        movementAnimationThreshold;
 
     private Transform player;
 
@@ -119,6 +145,10 @@ public sealed class EnemyAI : MonoBehaviour
 
     private float patrolTimer;
     private float playerSearchTimer;
+    private float nextAttackAnimationTime;
+
+    private int movingParameterHash;
+    private int attackTriggerHash;
 
     private bool wantsToMove;
 
@@ -127,6 +157,12 @@ public sealed class EnemyAI : MonoBehaviour
         rb = GetComponent<Rigidbody2D>();
         enemy = GetComponent<Enemy>();
         enemyAttack = GetComponent<EnemyAttack>();
+
+        animator =
+            GetComponentInChildren<Animator>();
+
+        spriteRenderer =
+            GetComponentInChildren<SpriteRenderer>();
 
         ConfigureRigidbody();
     }
@@ -142,6 +178,19 @@ public sealed class EnemyAI : MonoBehaviour
         if (enemyAttack == null)
             enemyAttack = GetComponent<EnemyAttack>();
 
+        if (animator == null)
+        {
+            animator =
+                GetComponentInChildren<Animator>();
+        }
+
+        if (spriteRenderer == null)
+        {
+            spriteRenderer =
+                GetComponentInChildren<SpriteRenderer>();
+        }
+
+        CacheAnimatorParameters();
         ConfigureRigidbody();
     }
 
@@ -163,6 +212,7 @@ public sealed class EnemyAI : MonoBehaviour
             CurrentDirection;
 
         playerSearchTimer = 0f;
+        nextAttackAnimationTime = 0f;
 
         EnterPatrolMoving(true);
         SearchPlayer();
@@ -176,6 +226,8 @@ public sealed class EnemyAI : MonoBehaviour
         {
             wantsToMove = false;
             desiredMoveDirection = Vector2.zero;
+
+            UpdateMovementAnimation();
             return;
         }
 
@@ -194,6 +246,8 @@ public sealed class EnemyAI : MonoBehaviour
                 UpdateChase(deltaTime);
                 break;
         }
+
+        UpdateMovementAnimation();
     }
 
     private void FixedUpdate()
@@ -209,7 +263,8 @@ public sealed class EnemyAI : MonoBehaviour
                 Vector2.MoveTowards(
                     rb.linearVelocity,
                     Vector2.zero,
-                    deceleration * Time.fixedDeltaTime
+                    deceleration *
+                    Time.fixedDeltaTime
                 );
 
             return;
@@ -217,6 +272,20 @@ public sealed class EnemyAI : MonoBehaviour
 
         ApplyMovement();
         LimitVelocity();
+        UpdateSpriteFlip();
+    }
+
+    private void CacheAnimatorParameters()
+    {
+        movingParameterHash =
+            Animator.StringToHash(
+                movingParameterName
+            );
+
+        attackTriggerHash =
+            Animator.StringToHash(
+                attackTriggerName
+            );
     }
 
     private void ConfigureRigidbody()
@@ -224,7 +293,9 @@ public sealed class EnemyAI : MonoBehaviour
         if (rb == null)
             return;
 
-        rb.bodyType = RigidbodyType2D.Dynamic;
+        rb.bodyType =
+            RigidbodyType2D.Dynamic;
+
         rb.gravityScale = 0f;
         rb.freezeRotation = true;
     }
@@ -271,10 +342,28 @@ public sealed class EnemyAI : MonoBehaviour
             return false;
         }
 
+        if (animator == null)
+        {
+            Debug.LogWarning(
+                $"{name}: Animator가 연결되지 않았습니다.",
+                this
+            );
+        }
+
+        if (spriteRenderer == null)
+        {
+            Debug.LogWarning(
+                $"{name}: SpriteRenderer가 연결되지 않았습니다.",
+                this
+            );
+        }
+
         return true;
     }
 
-    private void UpdatePlayerReference(float deltaTime)
+    private void UpdatePlayerReference(
+        float deltaTime
+    )
     {
         if (player != null &&
             player.gameObject.activeInHierarchy)
@@ -367,7 +456,9 @@ public sealed class EnemyAI : MonoBehaviour
         }
     }
 
-    private void UpdatePatrol(float deltaTime)
+    private void UpdatePatrol(
+        float deltaTime
+    )
     {
         patrolTimer -= deltaTime;
 
@@ -375,11 +466,16 @@ public sealed class EnemyAI : MonoBehaviour
         {
             case PatrolPhase.Idle:
                 wantsToMove = false;
+
                 desiredMoveDirection =
                     Vector2.zero;
 
                 if (patrolTimer <= 0f)
-                    EnterPatrolMoving(false);
+                {
+                    EnterPatrolMoving(
+                        false
+                    );
+                }
 
                 break;
 
@@ -454,6 +550,7 @@ public sealed class EnemyAI : MonoBehaviour
             PatrolPhase.Idle;
 
         wantsToMove = false;
+
         desiredMoveDirection =
             Vector2.zero;
 
@@ -484,11 +581,14 @@ public sealed class EnemyAI : MonoBehaviour
         wantsToMove = true;
     }
 
-    private void UpdateChase(float deltaTime)
+    private void UpdateChase(
+        float deltaTime
+    )
     {
         if (player == null)
         {
             wantsToMove = false;
+
             desiredMoveDirection =
                 Vector2.zero;
 
@@ -505,11 +605,11 @@ public sealed class EnemyAI : MonoBehaviour
         if (distance <= Mathf.Epsilon)
         {
             wantsToMove = false;
+
             desiredMoveDirection =
                 Vector2.zero;
 
-            // 같은 위치에 겹쳐 있어도 공격 시도
-            enemyAttack.TryAttack(player);
+            TryAttackPlayer();
 
             return;
         }
@@ -530,26 +630,83 @@ public sealed class EnemyAI : MonoBehaviour
                 deltaTime
             );
 
-        /*
-         * 추가된 핵심 부분:
-         * 공격 범위 안이면 이동을 멈추고 공격합니다.
-         */
+        UpdateFacingDirection(
+            directionToPlayer
+        );
+
         if (enemyAttack.IsInAttackRange(player))
         {
             wantsToMove = false;
+
             desiredMoveDirection =
                 Vector2.zero;
 
-            enemyAttack.TryAttack(player);
+            TryAttackPlayer();
 
             return;
         }
 
-        // 공격 범위 밖이면 기존처럼 추적
         wantsToMove = true;
 
         desiredMoveDirection =
             CurrentDirection;
+    }
+
+    private void TryAttackPlayer()
+    {
+        if (player == null ||
+            enemyAttack == null)
+        {
+            return;
+        }
+
+        enemyAttack.TryAttack(player);
+
+        if (Time.time <
+            nextAttackAnimationTime)
+        {
+            return;
+        }
+
+        nextAttackAnimationTime =
+            Time.time +
+            attackAnimationInterval;
+
+        PlayAttackAnimation();
+    }
+
+    private void PlayAttackAnimation()
+    {
+        if (animator == null)
+            return;
+
+        animator.ResetTrigger(
+            attackTriggerHash
+        );
+
+        animator.SetTrigger(
+            attackTriggerHash
+        );
+    }
+
+    private void UpdateMovementAnimation()
+    {
+        if (animator == null ||
+            rb == null)
+        {
+            return;
+        }
+
+        bool isMoving =
+            wantsToMove &&
+            rb.linearVelocity.sqrMagnitude >
+            movementAnimationThreshold *
+            movementAnimationThreshold;
+
+        animator.SetBool(
+            movingParameterHash,
+            isMoving
+        );
     }
 
     private void ApplyMovement()
@@ -627,6 +784,44 @@ public sealed class EnemyAI : MonoBehaviour
         }
     }
 
+    private void UpdateSpriteFlip()
+    {
+        if (spriteRenderer == null ||
+            rb == null)
+        {
+            return;
+        }
+
+        float horizontalVelocity =
+            rb.linearVelocity.x;
+
+        if (horizontalVelocity > 0.01f)
+        {
+            spriteRenderer.flipX = true;
+        }
+        else if (horizontalVelocity < -0.01f)
+        {
+            spriteRenderer.flipX = false;
+        }
+    }
+
+    private void UpdateFacingDirection(
+        Vector2 direction
+    )
+    {
+        if (spriteRenderer == null)
+            return;
+
+        if (direction.x > 0.01f)
+        {
+            spriteRenderer.flipX = true;
+        }
+        else if (direction.x < -0.01f)
+        {
+            spriteRenderer.flipX = false;
+        }
+    }
+
     private static float GetRandomDuration(
         Vector2 range
     )
@@ -654,7 +849,8 @@ public sealed class EnemyAI : MonoBehaviour
     )
     {
         float radians =
-            angle * Mathf.Deg2Rad;
+            angle *
+            Mathf.Deg2Rad;
 
         return new Vector2(
             Mathf.Cos(radians),
@@ -675,6 +871,7 @@ public sealed class EnemyAI : MonoBehaviour
     private void OnDisable()
     {
         wantsToMove = false;
+
         desiredMoveDirection =
             Vector2.zero;
 
@@ -682,6 +879,18 @@ public sealed class EnemyAI : MonoBehaviour
         {
             rb.linearVelocity =
                 Vector2.zero;
+        }
+
+        if (animator != null)
+        {
+            animator.SetBool(
+                movingParameterHash,
+                false
+            );
+
+            animator.ResetTrigger(
+                attackTriggerHash
+            );
         }
     }
 
@@ -753,25 +962,56 @@ public sealed class EnemyAI : MonoBehaviour
                 1f,
                 maximumVelocityMultiplier
             );
+
+        attackAnimationInterval =
+            Mathf.Max(
+                0.01f,
+                attackAnimationInterval
+            );
+
+        movementAnimationThreshold =
+            Mathf.Max(
+                0f,
+                movementAnimationThreshold
+            );
+
+        if (string.IsNullOrWhiteSpace(
+            movingParameterName))
+        {
+            movingParameterName =
+                "isMoving";
+        }
+
+        if (string.IsNullOrWhiteSpace(
+            attackTriggerName))
+        {
+            attackTriggerName =
+                "Attack";
+        }
+
+        CacheAnimatorParameters();
     }
 
     private void OnDrawGizmosSelected()
     {
-        Gizmos.color = Color.yellow;
+        Gizmos.color =
+            Color.yellow;
 
         Gizmos.DrawWireSphere(
             transform.position,
             detectionRadius
         );
 
-        Gizmos.color = Color.red;
+        Gizmos.color =
+            Color.red;
 
         Gizmos.DrawWireSphere(
             transform.position,
             loseTargetRadius
         );
 
-        Gizmos.color = Color.green;
+        Gizmos.color =
+            Color.green;
 
         Vector2 direction =
             Application.isPlaying

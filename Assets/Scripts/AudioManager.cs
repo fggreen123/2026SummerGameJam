@@ -5,8 +5,9 @@ public class AudioManager : MonoBehaviour
 {
     public static AudioManager instance;
 
-    [Header("#BGM")] 
-    public AudioClip BgmClip;
+    [Header("#BGM")]
+    public AudioClip titleBgm;
+    public AudioClip dungeonBgm;
     public float bgmVolume;
     AudioSource bgmPlayer;
 
@@ -18,7 +19,7 @@ public class AudioManager : MonoBehaviour
     int channelIndex;
 
     public enum Sfx {PlayerSwordSound, RatAttackSound, DogAttackSound, SkeletonSwordSound, GhostAttackSound, 
-                     BallSound, HulahoopSound, FireSound, JumpUpSound, JumpDownSound, DamageSound, DungeonSound}
+                     BallSound, HulahoopSound, FireSound, JumpUpSound, JumpDownSound, DamageSound, DungeonSound, BGM}
 
     void Awake()
     {
@@ -28,10 +29,8 @@ public class AudioManager : MonoBehaviour
             DontDestroyOnLoad(gameObject);
             Init();
         }
-        else
-        {
+        else 
             Destroy(gameObject);
-        }
     }
 
     void Init()
@@ -42,7 +41,7 @@ public class AudioManager : MonoBehaviour
         bgmPlayer.playOnAwake = false;
         bgmPlayer.loop = true;
         bgmPlayer.volume = bgmVolume;
-        bgmPlayer.clip = BgmClip;
+        bgmPlayer.clip = titleBgm;
 
         GameObject sfxObject = new GameObject("SfxPlayer");
         sfxObject.transform.parent = transform;
@@ -55,18 +54,16 @@ public class AudioManager : MonoBehaviour
             sfxPlayers[i].volume = sfxVolume;
         }
 
-        if (!PlayerPrefs.HasKey("BGM"))
+        if (!PlayerPrefs.HasKey("BGM")) 
             PlayerPrefs.SetFloat("BGM", 0.3f);
 
-        if (!PlayerPrefs.HasKey("SFX")) 
+        if (!PlayerPrefs.HasKey("SFX"))
             PlayerPrefs.SetFloat("SFX", 0.3f);
 
         bgmPlayer.volume = bgmVolume;
 
-        foreach (AudioSource player in sfxPlayers)
-        {
+        foreach (AudioSource player in sfxPlayers) 
             player.volume = sfxVolume;
-        }
 
         bgmPlayer.Play();
     }
@@ -85,9 +82,7 @@ public class AudioManager : MonoBehaviour
         sfxVolume = volume;
 
         foreach (AudioSource player in sfxPlayers)
-        {
             player.volume = volume;
-        }
 
         PlayerPrefs.SetFloat("SFX", volume);
         PlayerPrefs.Save();
@@ -107,5 +102,15 @@ public class AudioManager : MonoBehaviour
             sfxPlayers[loopIndex].Play();
             break;
         }
+    }
+
+    public void ChangeBgm(AudioClip clip)
+    {
+        if (bgmPlayer.clip == clip)
+            return;
+
+        bgmPlayer.Stop();
+        bgmPlayer.clip = clip;
+        bgmPlayer.Play();
     }
 }
