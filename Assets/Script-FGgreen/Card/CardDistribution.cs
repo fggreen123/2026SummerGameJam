@@ -33,7 +33,7 @@ public class CardDistribution: MonoBehaviour
         CardSuit.Diamond
     };
     private int jokerCardIndex;
-    private bool HandCenterToggle=true;
+    public bool HandCenterToggle=true;
     private Camera mainCamera;
 
     private void Start()

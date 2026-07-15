@@ -296,7 +296,11 @@ public class CardSystem : MonoBehaviour
                 break;
         }
         cardDistribution.RemoveCard(gameObject);
-        cardDistribution.SetPlayerMoveable(true);
+        if (cardDistribution)
+        {
+            cardDistribution.SetPlayerMoveable(true);
+            cardDistribution.HandCenterToggle = false;
+        }
         return true;
     }
 

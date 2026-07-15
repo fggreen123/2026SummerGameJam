@@ -760,7 +760,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 987012686, guid: 5c574064eec10bd47ac566c0f8644744, type: 3}
       propertyPath: m_AnchorMax.y
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 1059420940771281255, guid: 5c574064eec10bd47ac566c0f8644744, type: 3}
       propertyPath: m_LocalPosition.x
@@ -830,7 +830,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 987012686, guid: 5c574064eec10bd47ac566c0f8644744, type: 3}
       propertyPath: m_AnchorMax.y
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 1059420940771281255, guid: 5c574064eec10bd47ac566c0f8644744, type: 3}
       propertyPath: m_LocalPosition.x
@@ -5814,7 +5814,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 987012686, guid: 5c574064eec10bd47ac566c0f8644744, type: 3}
       propertyPath: m_AnchorMax.y
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 1059420940771281255, guid: 5c574064eec10bd47ac566c0f8644744, type: 3}
       propertyPath: m_LocalPosition.x
@@ -6407,7 +6407,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!156049354 &766624401
 Grid:
   m_ObjectHideFlags: 0
@@ -6864,7 +6864,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 987012686, guid: 5c574064eec10bd47ac566c0f8644744, type: 3}
       propertyPath: m_AnchorMax.y
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 1059420940771281255, guid: 5c574064eec10bd47ac566c0f8644744, type: 3}
       propertyPath: m_LocalPosition.x
@@ -7206,7 +7206,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!156049354 &955317797
 Grid:
   m_ObjectHideFlags: 0
@@ -26761,7 +26761,6 @@ GameObject:
   - component: {fileID: 1508460813}
   - component: {fileID: 1508460812}
   - component: {fileID: 1508460811}
-  - component: {fileID: 1508460815}
   m_Layer: 0
   m_Name: Goal
   m_TagString: Untagged
@@ -27005,21 +27004,6 @@ Tilemap:
     e31: 0
     e32: 0
     e33: 1
---- !u!114 &1508460815
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1508460809}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 96516d442fde4224d8293f1bb5ac0b1a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Door
-  nextSceneName: Map2Game
-  enemyTag: Enemy
-  enemyCount: 0
 --- !u!1 &1561489062
 GameObject:
   m_ObjectHideFlags: 0
@@ -27322,7 +27306,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 987012686, guid: 5c574064eec10bd47ac566c0f8644744, type: 3}
       propertyPath: m_AnchorMax.y
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 1059420940771281255, guid: 5c574064eec10bd47ac566c0f8644744, type: 3}
       propertyPath: m_LocalPosition.x
