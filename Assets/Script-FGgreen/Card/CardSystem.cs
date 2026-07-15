@@ -295,7 +295,7 @@ public class CardSystem : MonoBehaviour
                 usedTarget.GetComponent<Enemy>().ApplyJoker();
                 break;
         }
-        cardDistribution.RemoveCard(gameObject);
+        if(cardDistribution.CurrentCardList.Count == 0) cardDistribution.RemoveCard(gameObject);
         cardDistribution.SetPlayerMoveable(true);
         return true;
     }

@@ -87,6 +87,7 @@ public sealed class PlayerAttack : MonoBehaviour
         player != null &&
         player.AttackSpeed > 0f &&
         Time.time >= nextAttackTime;
+    public CardDistribution hct;
 
     public Vector2 LastAttackDirection =>
         lastAttackDirection;
@@ -199,7 +200,7 @@ public sealed class PlayerAttack : MonoBehaviour
         if (attackAction != null &&
             attackAction.WasPressedThisFrame())
         {
-            TryAttack();
+            if(!hct.HandCenterToggle) TryAttack();
         }
     }
 
