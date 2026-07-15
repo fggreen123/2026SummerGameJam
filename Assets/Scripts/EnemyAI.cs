@@ -29,9 +29,30 @@ public sealed class EnemyAI : MonoBehaviour
     [SerializeField]
     private EnemyAttack enemyAttack;
 
+    [Tooltip("적 애니메이션을 재생하는 Animator입니다.")]
+    [SerializeField]
+    private Animator animator;
+
     [Tooltip("좌우 반전할 적의 SpriteRenderer입니다.")]
     [SerializeField]
     private SpriteRenderer spriteRenderer;
+
+    [Header("Animation")]
+    [Tooltip("Animator에 만든 이동 Bool 파라미터 이름입니다.")]
+    [SerializeField]
+    private string movingParameterName = "isMoving";
+
+    [Tooltip("Animator에 만든 공격 Trigger 파라미터 이름입니다.")]
+    [SerializeField]
+    private string attackTriggerName = "Attack";
+
+    [Tooltip("공격 애니메이션을 다시 실행할 수 있는 간격입니다.")]
+    [SerializeField, Min(0.01f)]
+    private float attackAnimationInterval = 1f;
+
+    [Tooltip("이 속도보다 빠르게 움직일 때 이동 애니메이션을 재생합니다.")]
+    [SerializeField, Min(0f)]
+    private float movementAnimationThreshold = 0.05f;
 
     [Header("Player Detection")]
     [SerializeField]
@@ -109,7 +130,9 @@ public sealed class EnemyAI : MonoBehaviour
 
     public bool IsMoving =>
         rb != null &&
-        rb.linearVelocity.sqrMagnitude > 0.01f;
+        rb.linearVelocity.sqrMagnitude >
+        movementAnimationThreshold *
+        movementAnimationThreshold;
 
     private Transform player;
 
@@ -122,6 +145,10 @@ public sealed class EnemyAI : MonoBehaviour
 
     private float patrolTimer;
     private float playerSearchTimer;
+    private float nextAttackAnimationTime;
+
+    private int movingParameterHash;
+    private int attackTriggerHash;
 
     private bool wantsToMove;
 
@@ -130,6 +157,9 @@ public sealed class EnemyAI : MonoBehaviour
         rb = GetComponent<Rigidbody2D>();
         enemy = GetComponent<Enemy>();
         enemyAttack = GetComponent<EnemyAttack>();
+
+        animator =
+            GetComponentInChildren<Animator>();
 
         spriteRenderer =
             GetComponentInChildren<SpriteRenderer>();
@@ -148,12 +178,19 @@ public sealed class EnemyAI : MonoBehaviour
         if (enemyAttack == null)
             enemyAttack = GetComponent<EnemyAttack>();
 
+        if (animator == null)
+        {
+            animator =
+                GetComponentInChildren<Animator>();
+        }
+
         if (spriteRenderer == null)
         {
             spriteRenderer =
                 GetComponentInChildren<SpriteRenderer>();
         }
 
+        CacheAnimatorParameters();
         ConfigureRigidbody();
     }
 
@@ -175,6 +212,7 @@ public sealed class EnemyAI : MonoBehaviour
             CurrentDirection;
 
         playerSearchTimer = 0f;
+        nextAttackAnimationTime = 0f;
 
         EnterPatrolMoving(true);
         SearchPlayer();
@@ -188,6 +226,8 @@ public sealed class EnemyAI : MonoBehaviour
         {
             wantsToMove = false;
             desiredMoveDirection = Vector2.zero;
+
+            UpdateMovementAnimation();
             return;
         }
 
@@ -206,6 +246,8 @@ public sealed class EnemyAI : MonoBehaviour
                 UpdateChase(deltaTime);
                 break;
         }
+
+        UpdateMovementAnimation();
     }
 
     private void FixedUpdate()
@@ -231,6 +273,19 @@ public sealed class EnemyAI : MonoBehaviour
         ApplyMovement();
         LimitVelocity();
         UpdateSpriteFlip();
+    }
+
+    private void CacheAnimatorParameters()
+    {
+        movingParameterHash =
+            Animator.StringToHash(
+                movingParameterName
+            );
+
+        attackTriggerHash =
+            Animator.StringToHash(
+                attackTriggerName
+            );
     }
 
     private void ConfigureRigidbody()
@@ -287,10 +342,18 @@ public sealed class EnemyAI : MonoBehaviour
             return false;
         }
 
+        if (animator == null)
+        {
+            Debug.LogWarning(
+                $"{name}: Animator가 연결되지 않았습니다.",
+                this
+            );
+        }
+
         if (spriteRenderer == null)
         {
             Debug.LogWarning(
-                $"{name}: SpriteRenderer가 연결되지 않았습니다. 좌우 반전이 적용되지 않습니다.",
+                $"{name}: SpriteRenderer가 연결되지 않았습니다.",
                 this
             );
         }
@@ -546,7 +609,7 @@ public sealed class EnemyAI : MonoBehaviour
             desiredMoveDirection =
                 Vector2.zero;
 
-            enemyAttack.TryAttack(player);
+            TryAttackPlayer();
 
             return;
         }
@@ -567,6 +630,10 @@ public sealed class EnemyAI : MonoBehaviour
                 deltaTime
             );
 
+        UpdateFacingDirection(
+            directionToPlayer
+        );
+
         if (enemyAttack.IsInAttackRange(player))
         {
             wantsToMove = false;
@@ -574,7 +641,7 @@ public sealed class EnemyAI : MonoBehaviour
             desiredMoveDirection =
                 Vector2.zero;
 
-            enemyAttack.TryAttack(player);
+            TryAttackPlayer();
 
             return;
         }
@@ -583,6 +650,63 @@ public sealed class EnemyAI : MonoBehaviour
 
         desiredMoveDirection =
             CurrentDirection;
+    }
+
+    private void TryAttackPlayer()
+    {
+        if (player == null ||
+            enemyAttack == null)
+        {
+            return;
+        }
+
+        enemyAttack.TryAttack(player);
+
+        if (Time.time <
+            nextAttackAnimationTime)
+        {
+            return;
+        }
+
+        nextAttackAnimationTime =
+            Time.time +
+            attackAnimationInterval;
+
+        PlayAttackAnimation();
+    }
+
+    private void PlayAttackAnimation()
+    {
+        if (animator == null)
+            return;
+
+        animator.ResetTrigger(
+            attackTriggerHash
+        );
+
+        animator.SetTrigger(
+            attackTriggerHash
+        );
+    }
+
+    private void UpdateMovementAnimation()
+    {
+        if (animator == null ||
+            rb == null)
+        {
+            return;
+        }
+
+        bool isMoving =
+            wantsToMove &&
+            rb.linearVelocity.sqrMagnitude >
+            movementAnimationThreshold *
+            movementAnimationThreshold;
+
+        animator.SetBool(
+            movingParameterHash,
+            isMoving
+        );
     }
 
     private void ApplyMovement()
@@ -681,6 +805,23 @@ public sealed class EnemyAI : MonoBehaviour
         }
     }
 
+    private void UpdateFacingDirection(
+        Vector2 direction
+    )
+    {
+        if (spriteRenderer == null)
+            return;
+
+        if (direction.x > 0.01f)
+        {
+            spriteRenderer.flipX = true;
+        }
+        else if (direction.x < -0.01f)
+        {
+            spriteRenderer.flipX = false;
+        }
+    }
+
     private static float GetRandomDuration(
         Vector2 range
     )
@@ -738,6 +879,18 @@ public sealed class EnemyAI : MonoBehaviour
         {
             rb.linearVelocity =
                 Vector2.zero;
+        }
+
+        if (animator != null)
+        {
+            animator.SetBool(
+                movingParameterHash,
+                false
+            );
+
+            animator.ResetTrigger(
+                attackTriggerHash
+            );
         }
     }
 
@@ -809,6 +962,34 @@ public sealed class EnemyAI : MonoBehaviour
                 1f,
                 maximumVelocityMultiplier
             );
+
+        attackAnimationInterval =
+            Mathf.Max(
+                0.01f,
+                attackAnimationInterval
+            );
+
+        movementAnimationThreshold =
+            Mathf.Max(
+                0f,
+                movementAnimationThreshold
+            );
+
+        if (string.IsNullOrWhiteSpace(
+            movingParameterName))
+        {
+            movingParameterName =
+                "isMoving";
+        }
+
+        if (string.IsNullOrWhiteSpace(
+            attackTriggerName))
+        {
+            attackTriggerName =
+                "Attack";
+        }
+
+        CacheAnimatorParameters();
     }
 
     private void OnDrawGizmosSelected()
