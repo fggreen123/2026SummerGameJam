@@ -7,11 +7,13 @@ public class Door : MonoBehaviour
 
     public string enemyTag = "Enemy";
 
+    public int enemyCount;
+
     private void OnTriggerEnter2D(Collider2D collision)
     {
         if (collision.CompareTag("Player"))
         {
-            int enemyCount = GameObject.FindGameObjectsWithTag(enemyTag).Length;
+            enemyCount = GameObject.FindGameObjectsWithTag(enemyTag).Length;
 
             if(enemyCount == 0)
             {

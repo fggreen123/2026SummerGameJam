@@ -564,7 +564,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -1.873352, y: 2.48526}
+  m_AnchoredPosition: {x: -7.72, y: 2.62}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1001 &172876589
@@ -4700,7 +4700,7 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 795647744}
-  - {fileID: 1021157198}
+  - {fileID: 563110928}
   m_Father: {fileID: 1168126433}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -4768,8 +4768,8 @@ Canvas:
   m_VertexColorAlwaysGammaSpace: 0
   m_AdditionalShaderChannelsFlag: 25
   m_UpdateRectTransformForStandalone: 0
-  m_SortingLayerID: 0
-  m_SortingOrder: 5
+  m_SortingLayerID: -885307913
+  m_SortingOrder: 15
   m_TargetDisplay: 0
 --- !u!1 &391899716
 GameObject:
@@ -4857,6 +4857,7 @@ GameObject:
   - component: {fileID: 563110928}
   - component: {fileID: 563110930}
   - component: {fileID: 563110929}
+  - component: {fileID: 563110931}
   m_Layer: 0
   m_Name: CardInformationTextBackground
   m_TagString: Untagged
@@ -4871,18 +4872,20 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 563110927}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 1021157198}
+  m_Children:
+  - {fileID: 1021157198}
+  - {fileID: 719025135}
+  m_Father: {fileID: 382006189}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0.000022888, y: -38}
-  m_SizeDelta: {x: 254.65, y: 138.8}
-  m_Pivot: {x: 0.5, y: 0.5}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: -889.9551, y: -153.33997}
+  m_SizeDelta: {x: 311.91, y: 193.32}
+  m_Pivot: {x: 0, y: 1}
 --- !u!114 &563110929
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4896,15 +4899,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 0.9339623, g: 0.9339623, b: 0.9339623, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 0}
-  m_Type: 0
+  m_Sprite: {fileID: 21300000, guid: 7488a9ce5303874459211e59baf8958e, type: 3}
+  m_Type: 1
   m_PreserveAspect: 0
   m_FillCenter: 1
   m_FillMethod: 4
@@ -4921,6 +4924,20 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 563110927}
   m_CullTransparentMesh: 1
+--- !u!114 &563110931
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 563110927}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 68caa73f188fa4344a71da7514a4df11, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CardInformationTextSystem
+  CardType: {fileID: 1021157199}
+  CardEffect: {fileID: 719025136}
 --- !u!1 &600184132
 GameObject:
   m_ObjectHideFlags: 0
@@ -5383,17 +5400,17 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 719025134}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 1021157198}
+  m_Father: {fileID: 563110928}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0.000020503998, y: -63.715}
-  m_SizeDelta: {x: 254.65, y: 87.37}
+  m_AnchoredPosition: {x: -0.6300049, y: -23.879997}
+  m_SizeDelta: {x: 294.31, y: 145.56}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &719025136
 MonoBehaviour:
@@ -5425,7 +5442,7 @@ MonoBehaviour:
   m_fontColor32:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
+  m_fontColor: {r: 0, g: 0, b: 0, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -6249,7 +6266,6 @@ GameObject:
   - component: {fileID: 1021157198}
   - component: {fileID: 1021157200}
   - component: {fileID: 1021157199}
-  - component: {fileID: 1021157201}
   m_Layer: 0
   m_Name: CardInformationText-CardType
   m_TagString: Untagged
@@ -6264,19 +6280,17 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1021157197}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 719025135}
-  - {fileID: 563110928}
-  m_Father: {fileID: 382006189}
+  m_Children: []
+  m_Father: {fileID: 563110928}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -272.67, y: 348}
-  m_SizeDelta: {x: 254.65, y: 32.05}
+  m_AnchoredPosition: {x: 6.3849945, y: 68.08}
+  m_SizeDelta: {x: 308.34, y: 38.35}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1021157199
 MonoBehaviour:
@@ -6298,7 +6312,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 
+  m_text: "\uD074\uB85C\uBC84"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8ee48e91e6a9f444fbb9175c113119ba, type: 2}
   m_sharedMaterial: {fileID: -5093868061522084780, guid: 8ee48e91e6a9f444fbb9175c113119ba, type: 2}
@@ -6325,15 +6339,15 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 30
-  m_fontSizeBase: 30
+  m_fontSize: 35.1
+  m_fontSizeBase: 35.1
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
   m_fontSizeMax: 72
   m_fontStyle: 0
   m_HorizontalAlignment: 1
-  m_VerticalAlignment: 256
+  m_VerticalAlignment: 512
   m_textAlignment: 65535
   m_characterSpacing: 0
   m_characterHorizontalScale: 1
@@ -6378,20 +6392,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1021157197}
   m_CullTransparentMesh: 1
---- !u!114 &1021157201
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1021157197}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 68caa73f188fa4344a71da7514a4df11, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::CardInformationTextSystem
-  CardType: {fileID: 1021157199}
-  CardEffect: {fileID: 719025136}
 --- !u!1 &1131591730
 GameObject:
   m_ObjectHideFlags: 0
@@ -25290,8 +25290,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 96516d442fde4224d8293f1bb5ac0b1a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Door
-  nextSceneName: 
+  nextSceneName: Map2Game
   enemyTag: Enemy
+  enemyCount: 0
 --- !u!1 &1561489062
 GameObject:
   m_ObjectHideFlags: 0
@@ -26793,7 +26794,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fd23d3a9d098f6d48b7f94edb4bcb829, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CardDistribution
-  CardInformationText: {fileID: 1021157201}
+  CardInformationText: {fileID: 0}
   Player: {fileID: 9054135063626929312}
   GameManager: {fileID: 690428942}
   HandRoot: {fileID: 2000000101}
@@ -31494,7 +31495,7 @@ GameObject:
   - component: {fileID: 2100000204}
   m_Layer: 0
   m_Name: EnemySample
-  m_TagString: Enemy
+  m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
