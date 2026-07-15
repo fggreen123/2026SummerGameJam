@@ -400,10 +400,11 @@ public sealed class PlayerAttack : MonoBehaviour
                 player.AttackRange
             );
 
-        Vector2 center =
-            originPosition +
-            direction *
-            (range * 0.5f);
+        Vector2 center = GetAttackCenter(
+            originPosition,
+            direction,
+            range
+        );
 
         GameObject effectObject =
             new GameObject(
@@ -459,10 +460,11 @@ public sealed class PlayerAttack : MonoBehaviour
                 player.AttackRange
             );
 
-        Vector2 hitboxCenter =
-            originPosition +
-            direction *
-            (range * 0.5f);
+        Vector2 hitboxCenter = GetAttackCenter(
+            originPosition,
+            direction,
+            range
+        );
 
         Vector2 hitboxSize =
             new Vector2(
@@ -512,6 +514,16 @@ public sealed class PlayerAttack : MonoBehaviour
                 player.Damage
             );
         }
+    }
+
+    private static Vector2 GetAttackCenter(
+        Vector2 originPosition,
+        Vector2 direction,
+        float range
+    )
+    {
+        return originPosition +
+               direction * (range * 0.5f);
     }
 
     private static Sprite GetDefaultEffectSprite()
@@ -643,10 +655,11 @@ public sealed class PlayerAttack : MonoBehaviour
                 direction.x
             ) * Mathf.Rad2Deg;
 
-        Vector2 center =
-            (Vector2)origin.position +
-            direction *
-            (range * 0.5f);
+        Vector2 center = GetAttackCenter(
+            origin.position,
+            direction,
+            range
+        );
 
         Matrix4x4 previousMatrix =
             Gizmos.matrix;

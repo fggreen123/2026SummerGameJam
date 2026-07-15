@@ -32,6 +32,6 @@ public class TitleUI : MonoBehaviour
 
     public void StartGame()
     {
-        SceneManager.LoadScene("Test");
+        SceneManager.LoadScene("MainInGame");
     }
 }
