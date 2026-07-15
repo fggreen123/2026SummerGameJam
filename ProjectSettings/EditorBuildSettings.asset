@@ -15,6 +15,9 @@ EditorBuildSettings:
     path: Assets/Scenes/MainGameScenes/Map1Game.unity
     guid: 66bd127283c197e4e863df8daf0697bc
   - enabled: 1
+    path: Assets/Scenes/MainGameScenes/Map2Game.unity
+    guid: 94c52b5c8329f8f4592a3ebbf6078d02
+  - enabled: 1
     path: Assets/Scenes/GOSceneTest.unity
     guid: 8c9cfa26abfee488c85f1582747f6a02
   - enabled: 1
