@@ -11,7 +11,7 @@ public class GameOverUI : MonoBehaviour
 
     public void OnClickMainScene()
     {
-        SceneManager.LoadScene("MainScene");
+        SceneManager.LoadScene("TitleScene");
         Debug.Log("Main");
     }
 }
