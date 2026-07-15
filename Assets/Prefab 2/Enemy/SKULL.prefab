@@ -411,7 +411,7 @@ GameObject:
   - component: {fileID: -2945153984229712382}
   - component: {fileID: -8856853204386469627}
   m_Layer: 7
-  m_Name: DOG
+  m_Name: SKULL
   m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -512,12 +512,12 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 3
   m_MaskInteraction: 0
-  m_Sprite: {fileID: -8004965270653714688, guid: 7b72cbd849bdfcc4fb9a478ca34ad3c7, type: 3}
+  m_Sprite: {fileID: -6318304008360763362, guid: d5ec9c8b67eba2942b5a464d409020b9, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
-  m_Size: {x: 0.48, y: 0.48}
+  m_Size: {x: 0.27, y: 0.27}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
@@ -537,9 +537,9 @@ MonoBehaviour:
   rb: {fileID: 251146401211272584}
   enemy: {fileID: 3829291956338357413}
   enemyAttack: {fileID: 4839773909496595235}
-  animator: {fileID: -8856853204386469627}
+  animator: {fileID: 0}
   spriteRenderer: {fileID: 93258623398787006}
-  movingParameterName: IsMoving
+  movingParameterName: isMoving
   attackTriggerName: Attack
   attackAnimationInterval: 1
   movementAnimationThreshold: 0.05
@@ -570,7 +570,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5e5077e1945eb8a4ab8f9ee6ca281e75, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Enemy
-  data: {fileID: 11400000, guid: 50ba4c0ac9527dd4d941bc388ffab08f, type: 2}
+  data: {fileID: 11400000, guid: 4c5127354d7abc24ca306770e86a23bd, type: 2}
   visualTransform: {fileID: 1059420940771281255}
   visualSpriteRenderer: {fileID: 93258623398787006}
   hitFlashColor: {r: 1, g: 0, b: 0, a: 1}
@@ -675,8 +675,8 @@ CircleCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: 0, y: -0.032743275}
-  m_Radius: 0.08611423
+  m_Offset: {x: 0, y: -0.1}
+  m_Radius: 0.08
 --- !u!95 &-8856853204386469627
 Animator:
   serializedVersion: 7
@@ -687,7 +687,7 @@ Animator:
   m_GameObject: {fileID: 5645449143876158899}
   m_Enabled: 1
   m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 9100000, guid: 33f5e80815acdec40a2a176092c9e996, type: 2}
+  m_Controller: {fileID: 9100000, guid: 0af16eca4b82bfc4d86d9d33a91c77c7, type: 2}
   m_CullingMode: 0
   m_UpdateMode: 0
   m_ApplyRootMotion: 0

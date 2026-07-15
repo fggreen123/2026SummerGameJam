@@ -61,13 +61,51 @@ public sealed class JumpSkill : BossSkill
     [SerializeField, Min(0)]
     private int landingDamage = 5;
 
-    [Tooltip("낙하 직전 플레이어 위치를 다시 추적할지 설정합니다.")]
+    [Tooltip("낙하 중 플레이어의 현재 위치를 계속 추적합니다.")]
     [SerializeField]
     private bool targetLatestPlayerPosition = true;
 
-    [Tooltip("낙하 중 피해를 줄 수 있는 레이어입니다.")]
+    [Tooltip("낙하 피해를 줄 플레이어 레이어입니다.")]
     [SerializeField]
-    private LayerMask damageLayerMask = ~0;
+    private LayerMask damageLayerMask;
+
+    [Header("Landing Damage Area")]
+    [Tooltip("보스 본체 콜라이더 크기를 착지 피해 범위로 사용합니다.")]
+    [SerializeField]
+    private bool useBodyColliderSize = true;
+
+    [Tooltip("본체 콜라이더 크기를 사용하지 않을 때 적용할 피해 범위입니다.")]
+    [SerializeField]
+    private Vector2 manualDamageSize = new Vector2(1f, 1f);
+
+    [Tooltip("착지 피해 범위 위치 보정값입니다.")]
+    [SerializeField]
+    private Vector2 damageAreaOffset = Vector2.zero;
+
+    [Header("Safe Landing")]
+    [Tooltip("착지 공격 후 플레이어와 떨어질 최소 거리입니다.")]
+    [SerializeField, Min(0.1f)]
+    private float postLandingDistance = 1.2f;
+
+    [Tooltip("보스가 배치되면 안 되는 타일맵 벽 레이어입니다.")]
+    [SerializeField]
+    private LayerMask wallLayerMask;
+
+    [Tooltip("플레이어 주변에서 안전한 위치를 검사할 방향 개수입니다.")]
+    [SerializeField, Range(4, 32)]
+    private int safePositionCheckCount = 16;
+
+    [Tooltip("첫 번째 거리에서 자리를 못 찾았을 때 추가로 검사할 횟수입니다.")]
+    [SerializeField, Range(1, 8)]
+    private int safePositionDistanceSteps = 3;
+
+    [Tooltip("안전한 위치를 다시 검사할 때 늘어나는 거리입니다.")]
+    [SerializeField, Min(0.05f)]
+    private float safePositionDistanceStep = 0.4f;
+
+    [Tooltip("벽 검사 시 보스 콜라이더 크기를 약간 줄이는 비율입니다.")]
+    [SerializeField, Range(0.5f, 1f)]
+    private float safeCheckSizeMultiplier = 0.9f;
 
     [Header("Landing Feel")]
     [Tooltip("낙하가 점점 빨라지는 정도입니다.")]
@@ -79,24 +117,44 @@ public sealed class JumpSkill : BossSkill
             new Keyframe(1f, 1f)
         );
 
-    private readonly Collider2D[] overlapResults =
+    private readonly Collider2D[] damageOverlapResults =
         new Collider2D[16];
+
+    private readonly Collider2D[] placementOverlapResults =
+        new Collider2D[32];
 
     private readonly HashSet<IDamageable> damagedTargets =
         new HashSet<IDamageable>();
 
     private bool landingActive;
+    private bool physicsStateStored;
+
+    private RigidbodyType2D storedBodyType;
+    private Vector2 storedVelocity;
+    private float storedAngularVelocity;
+    private RigidbodyConstraints2D storedConstraints;
+    private bool storedColliderEnabled;
+
+    private Vector2 cachedDamageSize;
+    private Vector2 cachedColliderCenterOffset;
+
+    private Vector3 jumpStartPosition;
+    private Vector3 originalScale;
+    private float originalRotation;
 
     private void Reset()
     {
         bossController =
             GetComponentInParent<BossController>();
 
-        rb = GetComponentInParent<Rigidbody2D>();
+        rb =
+            GetComponentInParent<Rigidbody2D>();
+
         bodyCollider =
             GetComponentInParent<Collider2D>();
 
-        targetCamera = Camera.main;
+        targetCamera =
+            Camera.main;
     }
 
     private void Awake()
@@ -108,7 +166,10 @@ public sealed class JumpSkill : BossSkill
         }
 
         if (rb == null)
-            rb = GetComponentInParent<Rigidbody2D>();
+        {
+            rb =
+                GetComponentInParent<Rigidbody2D>();
+        }
 
         if (bodyCollider == null)
         {
@@ -117,7 +178,10 @@ public sealed class JumpSkill : BossSkill
         }
 
         if (targetCamera == null)
-            targetCamera = Camera.main;
+        {
+            targetCamera =
+                Camera.main;
+        }
     }
 
     protected override IEnumerator ExecuteSkill()
@@ -134,52 +198,56 @@ public sealed class JumpSkill : BossSkill
         damagedTargets.Clear();
         landingActive = false;
 
-        RigidbodyType2D previousBodyType =
-            rb.bodyType;
+        jumpStartPosition =
+            bossTransform.position;
 
-        Vector2 previousVelocity =
-            rb.linearVelocity;
-
-        float previousAngularVelocity =
-            rb.angularVelocity;
-
-        RigidbodyConstraints2D previousConstraints =
-            rb.constraints;
-
-        bool previousColliderEnabled =
-            bodyCollider.enabled;
-
-        rb.linearVelocity = Vector2.zero;
-        rb.angularVelocity = 0f;
-        rb.bodyType = RigidbodyType2D.Kinematic;
-
-        Vector3 originalScale =
+        originalScale =
             bossTransform.localScale;
 
-        float originalRotation =
+        originalRotation =
             bossTransform.eulerAngles.z;
 
+        StorePhysicsState();
+        CacheDamageArea(bossTransform);
+
+        rb.linearVelocity =
+            Vector2.zero;
+
+        rb.angularVelocity =
+            0f;
+
+        rb.bodyType =
+            RigidbodyType2D.Kinematic;
+
+        /*
+         * 점프를 시작하기 전에 본체 콜라이더를 끕니다.
+         * 화면 밖으로 올라갈 때와 내려올 때 타일맵 벽을 무시합니다.
+         */
+        bodyCollider.enabled =
+            false;
+
         yield return JumpOutsideScreen(
-            bossTransform,
-            originalScale,
-            originalRotation
+            bossTransform
         );
 
-        bodyCollider.enabled = false;
-
         if (airTime > 0f)
-            yield return new WaitForSeconds(airTime);
+        {
+            yield return new WaitForSeconds(
+                airTime
+            );
+        }
+
+        player =
+            bossController.Player;
 
         if (player == null)
         {
-            RestorePhysics(
-                previousBodyType,
-                previousVelocity,
-                previousAngularVelocity,
-                previousConstraints,
-                previousColliderEnabled
+            MoveBossImmediately(
+                bossTransform,
+                jumpStartPosition
             );
 
+            RestorePhysics();
             yield break;
         }
 
@@ -190,7 +258,11 @@ public sealed class JumpSkill : BossSkill
             landingTarget +
             Vector3.up * landingStartHeight;
 
-        bossTransform.position = landingStart;
+        MoveBossImmediately(
+            bossTransform,
+            landingStart
+        );
+
         bossTransform.rotation =
             Quaternion.Euler(
                 0f,
@@ -201,10 +273,12 @@ public sealed class JumpSkill : BossSkill
         bossTransform.localScale =
             originalScale;
 
-        bodyCollider.enabled =
-            previousColliderEnabled;
-
-        landingActive = true;
+        /*
+         * 보스 본체 콜라이더는 계속 꺼져 있습니다.
+         * 피해는 별도의 OverlapBox로 검사합니다.
+         */
+        landingActive =
+            true;
 
         yield return DropToPlayer(
             bossTransform,
@@ -213,23 +287,56 @@ public sealed class JumpSkill : BossSkill
             landingTarget
         );
 
-        landingActive = false;
-
+        /*
+         * 최종 착지 위치에서도 피해를 검사합니다.
+         */
         CheckLandingDamage();
 
-        RestorePhysics(
-            previousBodyType,
-            Vector2.zero,
-            0f,
-            previousConstraints,
-            previousColliderEnabled
+        landingActive =
+            false;
+
+        /*
+         * 플레이어와 겹친 상태에서 콜라이더를 켜면
+         * 물리 엔진이 플레이어를 강제로 밀어냅니다.
+         *
+         * 따라서 먼저 플레이어 옆의 안전한 위치로
+         * 보스를 이동시킨 다음 콜라이더를 켭니다.
+         */
+        Vector2 safePosition;
+
+        bool foundSafePosition =
+            TryFindSafeLandingPosition(
+                player,
+                out safePosition
+            );
+
+        if (!foundSafePosition)
+        {
+            /*
+             * 주변에 안전한 위치를 찾지 못하면
+             * 점프 전 위치로 돌아갑니다.
+             */
+            safePosition =
+                jumpStartPosition;
+        }
+
+        MoveBossImmediately(
+            bossTransform,
+            safePosition
         );
+
+        /*
+         * 위치 변경을 물리 엔진에 확실히 반영한 뒤
+         * 한 프레임 기다립니다.
+         */
+        Physics2D.SyncTransforms();
+        yield return null;
+
+        RestorePhysics();
     }
 
     private IEnumerator JumpOutsideScreen(
-        Transform bossTransform,
-        Vector3 originalScale,
-        float originalRotation
+        Transform bossTransform
     )
     {
         Vector3 startPosition =
@@ -270,15 +377,18 @@ public sealed class JumpSkill : BossSkill
             jumpSideDistance *
             horizontalDirection;
 
-        float elapsed = 0f;
+        float elapsed =
+            0f;
 
         while (elapsed < jumpOutDuration)
         {
-            elapsed += Time.deltaTime;
+            elapsed +=
+                Time.deltaTime;
 
             float progress =
                 Mathf.Clamp01(
-                    elapsed / jumpOutDuration
+                    elapsed /
+                    jumpOutDuration
                 );
 
             Vector3 linearPosition =
@@ -289,13 +399,20 @@ public sealed class JumpSkill : BossSkill
                 );
 
             float arc =
-                Mathf.Sin(progress * Mathf.PI) *
+                Mathf.Sin(
+                    progress *
+                    Mathf.PI
+                ) *
                 jumpArcHeight;
 
-            linearPosition.y += arc;
+            linearPosition.y +=
+                arc;
 
-            bossTransform.position =
-                linearPosition;
+            MoveBossImmediately(
+                bossTransform,
+                linearPosition,
+                false
+            );
 
             float rotation =
                 originalRotation +
@@ -311,7 +428,10 @@ public sealed class JumpSkill : BossSkill
                 );
 
             float scaleBounce =
-                Mathf.Sin(progress * Mathf.PI);
+                Mathf.Sin(
+                    progress *
+                    Mathf.PI
+                );
 
             bossTransform.localScale =
                 new Vector3(
@@ -327,8 +447,10 @@ public sealed class JumpSkill : BossSkill
             yield return null;
         }
 
-        bossTransform.position =
-            offscreenPosition;
+        MoveBossImmediately(
+            bossTransform,
+            offscreenPosition
+        );
 
         bossTransform.localScale =
             originalScale;
@@ -341,7 +463,8 @@ public sealed class JumpSkill : BossSkill
         Vector3 initialTarget
     )
     {
-        float elapsed = 0f;
+        float elapsed =
+            0f;
 
         Vector3 targetPosition =
             initialTarget;
@@ -351,11 +474,13 @@ public sealed class JumpSkill : BossSkill
             if (player == null)
                 break;
 
-            elapsed += Time.deltaTime;
+            elapsed +=
+                Time.deltaTime;
 
             float progress =
                 Mathf.Clamp01(
-                    elapsed / landingDuration
+                    elapsed /
+                    landingDuration
                 );
 
             if (targetLatestPlayerPosition)
@@ -366,55 +491,64 @@ public sealed class JumpSkill : BossSkill
 
             float curvedProgress =
                 landingCurve != null
-                    ? landingCurve.Evaluate(progress)
+                    ? landingCurve.Evaluate(
+                        progress
+                    )
                     : progress;
 
-            bossTransform.position =
+            Vector3 currentPosition =
                 Vector3.Lerp(
                     startPosition,
                     targetPosition,
                     curvedProgress
                 );
 
+            MoveBossImmediately(
+                bossTransform,
+                currentPosition,
+                false
+            );
+
             CheckLandingDamage();
 
             yield return null;
         }
 
-        bossTransform.position =
-            targetPosition;
+        MoveBossImmediately(
+            bossTransform,
+            targetPosition
+        );
     }
 
     private void CheckLandingDamage()
     {
-        if (!landingActive ||
-            bodyCollider == null ||
-            !bodyCollider.enabled)
-        {
+        if (!landingActive)
             return;
-        }
 
-        ContactFilter2D filter =
-            new ContactFilter2D();
+        if (bossController == null)
+            return;
 
-        filter.SetLayerMask(
-            damageLayerMask
-        );
-
-        filter.useTriggers = true;
+        Vector2 damageCenter =
+            (Vector2)bossController.transform.position +
+            cachedColliderCenterOffset +
+            damageAreaOffset;
 
         int hitCount =
-            bodyCollider.Overlap(
-                filter,
-                overlapResults
+            Physics2D.OverlapBoxNonAlloc(
+                damageCenter,
+                cachedDamageSize,
+                0f,
+                damageOverlapResults,
+                damageLayerMask
             );
 
         for (int i = 0; i < hitCount; i++)
         {
             Collider2D hit =
-                overlapResults[i];
+                damageOverlapResults[i];
 
-            overlapResults[i] = null;
+            damageOverlapResults[i] =
+                null;
 
             if (hit == null)
                 continue;
@@ -424,8 +558,9 @@ public sealed class JumpSkill : BossSkill
             {
                 continue;
             }
+
             Player player =
-    hit.GetComponentInParent<Player>();
+                hit.GetComponentInParent<Player>();
 
             if (player == null)
                 continue;
@@ -434,12 +569,374 @@ public sealed class JumpSkill : BossSkill
                 player.GetComponent<IDamageable>();
 
             if (damageable == null)
+            {
+                damageable =
+                    player.GetComponentInParent<IDamageable>();
+            }
+
+            if (damageable == null)
                 continue;
 
             if (!damagedTargets.Add(damageable))
                 continue;
 
-            damageable.TakeDamage(landingDamage);
+            damageable.TakeDamage(
+                landingDamage
+            );
+        }
+    }
+
+    private bool TryFindSafeLandingPosition(
+        Transform player,
+        out Vector2 safePosition
+    )
+    {
+        safePosition =
+            jumpStartPosition;
+
+        if (player == null)
+            return false;
+
+        Vector2 playerPosition =
+            player.position;
+
+        Vector2 preferredDirection =
+            (Vector2)jumpStartPosition -
+            playerPosition;
+
+        if (preferredDirection.sqrMagnitude <= 0.0001f)
+        {
+            preferredDirection =
+                Random.value < 0.5f
+                    ? Vector2.left
+                    : Vector2.right;
+        }
+
+        preferredDirection.Normalize();
+
+        int directionCount =
+            Mathf.Max(
+                4,
+                safePositionCheckCount
+            );
+
+        int distanceSteps =
+            Mathf.Max(
+                1,
+                safePositionDistanceSteps
+            );
+
+        float preferredAngle =
+            Mathf.Atan2(
+                preferredDirection.y,
+                preferredDirection.x
+            ) *
+            Mathf.Rad2Deg;
+
+        float angleStep =
+            360f /
+            directionCount;
+
+        /*
+         * 가까운 거리부터 검사하고,
+         * 자리가 없으면 점점 더 먼 위치를 검사합니다.
+         */
+        for (int distanceIndex = 0;
+             distanceIndex < distanceSteps;
+             distanceIndex++)
+        {
+            float checkDistance =
+                postLandingDistance +
+                safePositionDistanceStep *
+                distanceIndex;
+
+            for (int directionIndex = 0;
+                 directionIndex < directionCount;
+                 directionIndex++)
+            {
+                int alternatingIndex =
+                    GetAlternatingIndex(
+                        directionIndex
+                    );
+
+                float angle =
+                    preferredAngle +
+                    alternatingIndex *
+                    angleStep;
+
+                Vector2 direction =
+                    new Vector2(
+                        Mathf.Cos(
+                            angle *
+                            Mathf.Deg2Rad
+                        ),
+                        Mathf.Sin(
+                            angle *
+                            Mathf.Deg2Rad
+                        )
+                    );
+
+                Vector2 candidate =
+                    playerPosition +
+                    direction *
+                    checkDistance;
+
+                if (!IsSafeBossPosition(
+                        candidate,
+                        player
+                    ))
+                {
+                    continue;
+                }
+
+                safePosition =
+                    candidate;
+
+                return true;
+            }
+        }
+
+        /*
+         * 원래 위치가 안전하면 원래 위치를 사용합니다.
+         */
+        if (IsSafeBossPosition(
+                jumpStartPosition,
+                player
+            ))
+        {
+            safePosition =
+                jumpStartPosition;
+
+            return true;
+        }
+
+        return false;
+    }
+
+    private int GetAlternatingIndex(
+        int index
+    )
+    {
+        if (index == 0)
+            return 0;
+
+        int step =
+            (index + 1) / 2;
+
+        return index % 2 == 1
+            ? step
+            : -step;
+    }
+
+    private bool IsSafeBossPosition(
+        Vector2 bossPosition,
+        Transform player
+    )
+    {
+        Vector2 checkSize =
+            cachedDamageSize *
+            safeCheckSizeMultiplier;
+
+        checkSize.x =
+            Mathf.Max(
+                0.05f,
+                checkSize.x
+            );
+
+        checkSize.y =
+            Mathf.Max(
+                0.05f,
+                checkSize.y
+            );
+
+        Vector2 checkCenter =
+            bossPosition +
+            cachedColliderCenterOffset;
+
+        int hitCount =
+            Physics2D.OverlapBoxNonAlloc(
+                checkCenter,
+                checkSize,
+                0f,
+                placementOverlapResults
+            );
+
+        for (int i = 0; i < hitCount; i++)
+        {
+            Collider2D hit =
+                placementOverlapResults[i];
+
+            placementOverlapResults[i] =
+                null;
+
+            if (hit == null)
+                continue;
+
+            /*
+             * 보스 자신의 콜라이더와 트리거는 무시합니다.
+             */
+            if (hit.transform.root ==
+                bossController.transform.root)
+            {
+                continue;
+            }
+
+            /*
+             * 플레이어와 겹치는 위치는 사용하지 않습니다.
+             */
+            if (player != null &&
+                hit.transform.root ==
+                player.root)
+            {
+                return false;
+            }
+
+            /*
+             * 타일맵 벽과 겹치는 위치는 사용하지 않습니다.
+             */
+            if (IsLayerInMask(
+                    hit.gameObject.layer,
+                    wallLayerMask
+                ))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private bool IsLayerInMask(
+        int layer,
+        LayerMask layerMask
+    )
+    {
+        return
+            (layerMask.value &
+             (1 << layer)) != 0;
+    }
+
+    private void CacheDamageArea(
+        Transform bossTransform
+    )
+    {
+        if (bodyCollider == null)
+        {
+            cachedDamageSize =
+                manualDamageSize;
+
+            cachedColliderCenterOffset =
+                Vector2.zero;
+
+            return;
+        }
+
+        Bounds bounds =
+            bodyCollider.bounds;
+
+        cachedDamageSize =
+            useBodyColliderSize
+                ? new Vector2(
+                    bounds.size.x,
+                    bounds.size.y
+                )
+                : manualDamageSize;
+
+        cachedDamageSize.x =
+            Mathf.Max(
+                0.01f,
+                cachedDamageSize.x
+            );
+
+        cachedDamageSize.y =
+            Mathf.Max(
+                0.01f,
+                cachedDamageSize.y
+            );
+
+        cachedColliderCenterOffset =
+            (Vector2)(
+                bounds.center -
+                bossTransform.position
+            );
+    }
+
+    private void StorePhysicsState()
+    {
+        storedBodyType =
+            rb.bodyType;
+
+        storedVelocity =
+            rb.linearVelocity;
+
+        storedAngularVelocity =
+            rb.angularVelocity;
+
+        storedConstraints =
+            rb.constraints;
+
+        storedColliderEnabled =
+            bodyCollider.enabled;
+
+        physicsStateStored =
+            true;
+    }
+
+    private void RestorePhysics()
+    {
+        landingActive =
+            false;
+
+        if (!physicsStateStored)
+            return;
+
+        rb.position =
+            bossController.transform.position;
+
+        rb.bodyType =
+            storedBodyType;
+
+        rb.constraints =
+            storedConstraints;
+
+        /*
+         * 보스는 평소 이동하지 않으므로
+         * 점프 이전 속도를 되살리지 않고 정지시킵니다.
+         */
+        rb.linearVelocity =
+            Vector2.zero;
+
+        rb.angularVelocity =
+            0f;
+
+        Physics2D.SyncTransforms();
+
+        /*
+         * 보스와 플레이어가 겹치지 않는 안전한 위치에서만
+         * 본체 콜라이더를 다시 켭니다.
+         */
+        bodyCollider.enabled =
+            storedColliderEnabled;
+
+        physicsStateStored =
+            false;
+    }
+
+    private void MoveBossImmediately(
+        Transform bossTransform,
+        Vector3 position,
+        bool syncTransforms = true
+    )
+    {
+        bossTransform.position =
+            position;
+
+        rb.position =
+            position;
+
+        if (syncTransforms)
+        {
+            Physics2D.SyncTransforms();
         }
     }
 
@@ -498,29 +995,68 @@ public sealed class JumpSkill : BossSkill
         return true;
     }
 
-    private void RestorePhysics(
-        RigidbodyType2D previousBodyType,
-        Vector2 previousVelocity,
-        float previousAngularVelocity,
-        RigidbodyConstraints2D previousConstraints,
-        bool previousColliderEnabled
-    )
+    private void OnDisable()
     {
-        landingActive = false;
+        landingActive =
+            false;
 
-        bodyCollider.enabled =
-            previousColliderEnabled;
+        if (!physicsStateStored)
+            return;
 
-        rb.bodyType =
-            previousBodyType;
+        /*
+         * 스킬 도중 오브젝트가 비활성화되면
+         * 콜라이더가 계속 꺼져 있지 않도록 복구합니다.
+         */
+        if (bossController != null &&
+            rb != null &&
+            bodyCollider != null)
+        {
+            RestorePhysics();
+        }
+    }
 
-        rb.constraints =
-            previousConstraints;
+    private void OnDrawGizmosSelected()
+    {
+        Transform bossTransform =
+            bossController != null
+                ? bossController.transform
+                : transform;
 
-        rb.linearVelocity =
-            previousVelocity;
+        Vector2 size;
 
-        rb.angularVelocity =
-            previousAngularVelocity;
+        Vector2 centerOffset =
+            damageAreaOffset;
+
+        if (Application.isPlaying)
+        {
+            size =
+                cachedDamageSize;
+
+            centerOffset +=
+                cachedColliderCenterOffset;
+        }
+        else if (useBodyColliderSize &&
+                 bodyCollider != null)
+        {
+            size =
+                bodyCollider.bounds.size;
+
+            centerOffset +=
+                (Vector2)(
+                    bodyCollider.bounds.center -
+                    bossTransform.position
+                );
+        }
+        else
+        {
+            size =
+                manualDamageSize;
+        }
+
+        Gizmos.DrawWireCube(
+            (Vector2)bossTransform.position +
+            centerOffset,
+            size
+        );
     }
 }
