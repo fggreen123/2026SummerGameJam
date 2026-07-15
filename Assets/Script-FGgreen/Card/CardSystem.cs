@@ -26,7 +26,6 @@ public class CardSystem : MonoBehaviour
     private SpriteRenderer suitRenderer;
     private SpriteRenderer numberRenderer;
     private GameObject target;
-    [SerializeField] private CameraShake ShakeCamera;
     private bool selected;
     private bool dragging;
     private Vector3 dragOffset;
@@ -72,7 +71,6 @@ public class CardSystem : MonoBehaviour
     {
         button = GetComponent<Button>();
         mainCamera = Camera.main;
-        ShakeCamera = mainCamera.GetComponent<CameraShake>();
         spriteRenderer = GetComponent<SpriteRenderer>();
         suitRenderer = CreateCardRenderer("Suit");
         numberRenderer = CreateCardRenderer("Number");
@@ -260,11 +258,18 @@ public class CardSystem : MonoBehaviour
     {
         if (cardTarget.CompareTag("Enemy"))
         {
-            cardTarget.GetComponent<EnemyOutline>().outlineSize = visible ? 16 : 0;
+            EnemyOutline outline = cardTarget.GetComponentInChildren<EnemyOutline>();
+            if (outline == null)
+            {
+                outline = cardTarget.GetComponentInChildren<SpriteRenderer>()
+                    .gameObject.AddComponent<EnemyOutline>();
+            }
+
+            outline.outlineSize = visible ? 16 : 0;
             return;
         }
 
-        cardTarget.GetComponent<PlayerOutline>().outlineSize = visible ? 1 : 0;
+        cardTarget.GetComponentInChildren<PlayerOutline>().outlineSize = visible ? 1 : 0;
     }
 
     private bool UseCard()
@@ -282,7 +287,7 @@ public class CardSystem : MonoBehaviour
         {
             case CardSuit.Spade:
                 cardTarget.ApplySpade(Rank);
-                ShakeCamera.ShakeCamera(0.2f, 0.15f);
+                PlayCameraShake();
                 break;
             case CardSuit.Club:
                 cardTarget.ApplyClub(Rank);
@@ -300,6 +305,14 @@ public class CardSystem : MonoBehaviour
         cardDistribution.RemoveCard(gameObject);
         cardDistribution.SetPlayerMoveable(true);
         return true;
+    }
+
+    private void PlayCameraShake()
+    {
+        CameraShake shake = mainCamera.GetComponent<CameraShake>()
+            ?? mainCamera.gameObject.AddComponent<CameraShake>();
+
+        shake.ShakeCamera(0.2f, 0.15f);
     }
 
     private void LogCardUse(GameObject usedTarget)
