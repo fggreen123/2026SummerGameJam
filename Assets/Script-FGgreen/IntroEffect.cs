@@ -8,6 +8,7 @@ public class IntroEffect : MonoBehaviour
     private void Start()
     {
         StartCoroutine(FadeInOut(gameObject));
+        StartCoroutine(ScaleUp(gameObject));
     }
     IEnumerator FadeInOut(GameObject target)
     {
@@ -32,5 +33,9 @@ public class IntroEffect : MonoBehaviour
         sr.color = new Color(sr.color.r, sr.color.g, sr.color.b, 0);
         SceneManager.LoadScene("TitleScene");
     }
-    
+    IEnumerator ScaleUp(GameObject target)
+    {
+        target.transform.localScale = new Vector2(Time.deltaTime, Time.deltaTime);
+        yield return null;
+    }
 }
