@@ -128,6 +128,7 @@ public sealed class Player : MonoBehaviour, ICardEffectTarget
     private Coroutine hitFlashCoroutine;
     private Coroutine deathVisualCoroutine;
     private int additionalMaxHp;
+    private static PlayerHealthData? preservedHealth;
 
     private void Reset()
     {
@@ -181,6 +182,8 @@ public sealed class Player : MonoBehaviour, ICardEffectTarget
 
         CurrentHp =
             MaxHp;
+
+        RestoreHealth();
 
         CurrentDamage =
             BaseDamage;
@@ -253,6 +256,38 @@ public sealed class Player : MonoBehaviour, ICardEffectTarget
         {
             Die();
         }
+    }
+
+    public void PreserveHealthForNextScene()
+    {
+        preservedHealth =
+            new PlayerHealthData(
+                CurrentHp,
+                additionalMaxHp
+            );
+    }
+
+    private void RestoreHealth()
+    {
+        if (!preservedHealth.HasValue)
+        {
+            return;
+        }
+
+        PlayerHealthData health =
+            preservedHealth.Value;
+
+        additionalMaxHp =
+            health.AdditionalMaxHp;
+
+        CurrentHp =
+            Mathf.Clamp(
+                health.CurrentHp,
+                0,
+                MaxHp
+            );
+
+        preservedHealth = null;
     }
     
     public void ApplySpade(int rank)
@@ -618,4 +653,19 @@ public sealed class Player : MonoBehaviour, ICardEffectTarget
         }
     }
 #endif
+
+    private readonly struct PlayerHealthData
+    {
+        public readonly int CurrentHp;
+        public readonly int AdditionalMaxHp;
+
+        public PlayerHealthData(
+            int currentHp,
+            int additionalMaxHp
+        )
+        {
+            CurrentHp = currentHp;
+            AdditionalMaxHp = additionalMaxHp;
+        }
+    }
 }

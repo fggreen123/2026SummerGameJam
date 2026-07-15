@@ -17620,6 +17620,7 @@ MonoBehaviour:
   GameManager: {fileID: 690428942}
   HandRoot: {fileID: 2000000101}
   gamemanager: {fileID: 690428942}
+  RestoreHandOnly: 1
   CardSuits:
   - {fileID: -1150797853226429853, guid: 37e379ac4863f1c489a13ad5f44f51ca, type: 3}
   - {fileID: 4179361977775431376, guid: 37e379ac4863f1c489a13ad5f44f51ca, type: 3}

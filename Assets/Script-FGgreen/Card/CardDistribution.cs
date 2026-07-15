@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class CardDistribution: MonoBehaviour
@@ -11,6 +12,7 @@ public class CardDistribution: MonoBehaviour
     [SerializeField] private Gamemanager GameManager; 
     [SerializeField] private Transform HandRoot;
     [SerializeField] private Gamemanager gamemanager;
+    [SerializeField] private bool RestoreHandOnly;
     public Sprite[] CardSuits = { };
     public Sprite[] CardNumbers = { };
     public GameObject Card;
@@ -39,14 +41,20 @@ public class CardDistribution: MonoBehaviour
 
     private void Start()
     {
+        mainCamera = Camera.main;
+        Player = FindFirstObjectByType<PlayerMovement>();
+        RestoreHand();
+
+        if (RestoreHandOnly)
+        {
+            return;
+        }
+
         if (CardInformationText == null)
         {
             CardInformationText = FindFirstObjectByType<CardInformationTextSystem>(FindObjectsInactive.Include);
         }
-
         CardInformationText.Hide();
-        mainCamera = Camera.main;
-        RestoreHand();
         jokerCardIndex = Random.value < 0.05f
             ? Random.Range(0, CardSuitOrder.Length)
             : -1;
@@ -105,15 +113,15 @@ public class CardDistribution: MonoBehaviour
 
     IEnumerator StartCardDistribute()
     {
-        switch (GameManager.CurrentFloor)
+        switch (SceneManager.GetActiveScene().name)
         {
-            case 1:
+            case "MapFloor1Game":
                 TargetCardAmount = 2;
                 break;
-            case 2:
+            case "MapFloor2Game":
                 TargetCardAmount = 3;
                 break;
-            case 3:
+            case "MapFloor3Game":
                 TargetCardAmount = 4;
                 break;
         }
@@ -175,7 +183,14 @@ public class CardDistribution: MonoBehaviour
         foreach (GameObject card in CurrentCardList)
         {
             CardSystem cardSystem = card.GetComponent<CardSystem>();
-            PreservedHand.Add(new CardData(cardSystem.Suit, cardSystem.Rank));
+            PreservedHand.Add(
+                new CardData(
+                    cardSystem.Suit,
+                    cardSystem.Rank,
+                    cardSystem.SuitSprite,
+                    cardSystem.NumberSprite
+                )
+            );
         }
     }
 
@@ -188,13 +203,13 @@ public class CardDistribution: MonoBehaviour
 
         foreach (CardData cardData in PreservedHand)
         {
-            GameObject card = Instantiate(Card);
+            GameObject card = Instantiate(Card, HandRoot);
             card.GetComponent<CardSystem>().Initialize(
                 this,
                 cardData.Suit,
                 cardData.Rank,
-                CardSuits[(int)cardData.Suit],
-                CardNumbers[cardData.Rank - 1]
+                cardData.SuitSprite,
+                cardData.NumberSprite
             );
             AddCardToHand(card);
         }
@@ -362,11 +377,20 @@ public class CardDistribution: MonoBehaviour
     {
         public readonly CardSuit Suit;
         public readonly int Rank;
+        public readonly Sprite SuitSprite;
+        public readonly Sprite NumberSprite;
 
-        public CardData(CardSuit suit, int rank)
+        public CardData(
+            CardSuit suit,
+            int rank,
+            Sprite suitSprite,
+            Sprite numberSprite
+        )
         {
             Suit = suit;
             Rank = rank;
+            SuitSprite = suitSprite;
+            NumberSprite = numberSprite;
         }
     }
 }

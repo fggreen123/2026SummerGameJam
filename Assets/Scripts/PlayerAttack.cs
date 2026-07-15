@@ -200,7 +200,8 @@ public sealed class PlayerAttack : MonoBehaviour
         if (attackAction != null &&
             attackAction.WasPressedThisFrame())
         {
-            if(!hct.HandCenterToggle) TryAttack();
+            if (hct == null) TryAttack();
+            else if (!hct.HandCenterToggle) TryAttack();
         }
     }
 

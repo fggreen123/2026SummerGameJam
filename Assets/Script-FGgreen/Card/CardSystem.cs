@@ -34,6 +34,8 @@ public class CardSystem : MonoBehaviour
     public Coroutine MoveCoroutine { get; set; }
     public CardSuit Suit { get; private set; }
     public int Rank { get; private set; }
+    public Sprite SuitSprite => suitRenderer.sprite;
+    public Sprite NumberSprite => numberRenderer.sprite;
     private string RankName => Rank switch
     {
         1 => "A",

@@ -18,7 +18,14 @@ public class Door : MonoBehaviour
             if(enemyCount == 0)
             {
                 Debug.Log("모든 적 처치 완료. 다음 맵 이동");
-                FindFirstObjectByType<CardDistribution>().PreserveHandForNextScene();
+                collision.GetComponentInParent<Player>().PreserveHealthForNextScene();
+
+                CardDistribution cardDistribution = FindFirstObjectByType<CardDistribution>();
+                if (cardDistribution != null)
+                {
+                    cardDistribution.PreserveHandForNextScene();
+                }
+
                 SceneManager.LoadScene(nextSceneName);
             }
             else
