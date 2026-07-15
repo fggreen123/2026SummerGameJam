@@ -57,10 +57,10 @@ public class CardDistribution: MonoBehaviour
         switch (GameManager.CurrentFloor)
         {
             case 1:
-                TargetCardAmount = 1;
+                TargetCardAmount = 2;
                 break;
             case 2:
-                TargetCardAmount = 2;
+                TargetCardAmount = 3;
                 break;
             case 3:
                 TargetCardAmount = 4;

@@ -1,7 +1,6 @@
 using System;
 using System.Collections;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 [DisallowMultipleComponent]
 public sealed class Player : MonoBehaviour, ICardEffectTarget
@@ -254,7 +253,7 @@ public sealed class Player : MonoBehaviour, ICardEffectTarget
             Die();
         }
     }
-
+    
     public void ApplySpade(int rank)
     {
         int amount = CardEffect.GetAmount(rank, CurrentHp, 0.5f, 0.6f, 0.7f);
@@ -435,11 +434,6 @@ public sealed class Player : MonoBehaviour, ICardEffectTarget
             );
 
         Died?.Invoke();
-
-        if (!SceneManager.GetSceneByName("GOScene").isLoaded)
-        {
-            SceneManager.LoadScene("GOScene", LoadSceneMode.Additive);
-        }
 
         Debug.Log(
             $"{PlayerName}가 사망했습니다.",
