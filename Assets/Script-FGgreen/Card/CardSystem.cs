@@ -181,19 +181,12 @@ public class CardSystem : MonoBehaviour
     {
         suitRenderer.sprite = suitSprite;
         numberRenderer.sprite = numberSprite;
-        suitRenderer.transform.localScale = Vector3.one;
-
-        if (Suit == CardSuit.Joker)
-        {
-            suitRenderer.transform.localPosition = -suitSprite.bounds.center;
-            numberRenderer.transform.localPosition = new Vector2(-0.065f, 0f);
-            numberRenderer.transform.localScale = Vector3.one;
-            return;
-        }
 
         suitRenderer.transform.localPosition = Vector3.zero;
-        numberRenderer.transform.localPosition = new Vector2(Rank == 10 ? -0.065f : -0.075f, 0.12f);
+        numberRenderer.transform.localPosition = Vector3.zero;
+        suitRenderer.transform.localScale = Vector3.one;
         numberRenderer.transform.localScale = Vector3.one;
+        numberRenderer.enabled = Suit != CardSuit.Joker;
     }
 
     private Vector3 GetMouseWorldPosition()
