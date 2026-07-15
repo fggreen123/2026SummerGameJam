@@ -1,19 +1,19 @@
 fileFormatVersion: 2
-guid: 7464344fb99b29c4f88e9ede4c1c37a7
+guid: 9e44a2f794d5ca043a44b8a411bf3cc2
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 7052014062792705861
-    second: CLOWNattack_0
+      213: 662271174185335449
+    second: CLOWNattack 1_0
   - first:
-      213: 8690024694307727820
-    second: CLOWNattack_1
+      213: -6604554386212320161
+    second: CLOWNattack 1_1
   - first:
-      213: -937800318960574930
-    second: CLOWNattack_2
+      213: -5809443080392090066
+    second: CLOWNattack 1_2
   - first:
-      213: 6427803983342076567
-    second: CLOWNattack_3
+      213: -7097734395970203776
+    second: CLOWNattack 1_3
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -46,7 +46,7 @@ TextureImporter:
   maxTextureSize: 2048
   textureSettings:
     serializedVersion: 2
-    filterMode: 0
+    filterMode: 1
     aniso: 1
     mipBias: 0
     wrapU: 1
@@ -106,19 +106,6 @@ TextureImporter:
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
   - serializedVersion: 4
-    buildTarget: WebGL
-    maxTextureSize: 2048
-    resizeAlgorithm: 0
-    textureFormat: -1
-    textureCompression: 1
-    compressionQuality: 50
-    crunchedCompression: 0
-    allowsAlphaSplitting: 0
-    overridden: 0
-    ignorePlatformSupport: 0
-    androidETC2FallbackOverride: 0
-    forceMaximumCompressionQuality_BC6H_BC7: 0
-  - serializedVersion: 4
     buildTarget: Android
     maxTextureSize: 2048
     resizeAlgorithm: 0
@@ -135,89 +122,89 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: CLOWNattack_0
+      name: CLOWNattack 1_0
       rect:
         serializedVersion: 2
-        x: 0
-        y: 0
-        width: 48
-        height: 48
+        x: 16
+        y: 16
+        width: 15
+        height: 15
       alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 54781db4d69cdd160800000000000000
-      internalID: 7052014062792705861
+      spriteID: 99a3c42cf1cd03900800000000000000
+      internalID: 662271174185335449
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: CLOWNattack_1
+      name: CLOWNattack 1_1
       rect:
         serializedVersion: 2
         x: 48
-        y: 0
+        y: 3
         width: 48
-        height: 48
+        height: 41
       alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: cc9a591fa6b299870800000000000000
-      internalID: 8690024694307727820
+      spriteID: f5c011637c8e754a0800000000000000
+      internalID: -6604554386212320161
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: CLOWNattack_2
+      name: CLOWNattack 1_2
       rect:
         serializedVersion: 2
-        x: 96
-        y: 0
-        width: 48
-        height: 48
+        x: 103
+        y: 1
+        width: 34
+        height: 27
       alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: e2e5b1e14934cf2f0800000000000000
-      internalID: -937800318960574930
+      spriteID: e2ed0625c46b06fa0800000000000000
+      internalID: -5809443080392090066
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: CLOWNattack_3
+      name: CLOWNattack 1_3
       rect:
         serializedVersion: 2
-        x: 144
-        y: 0
-        width: 48
-        height: 48
+        x: 151
+        y: 1
+        width: 34
+        height: 21
       alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 79202f8baa5243950800000000000000
-      internalID: 6427803983342076567
+      spriteID: 08fcf1a1c28cf7d90800000000000000
+      internalID: -7097734395970203776
       vertices: []
       indices: 
       edges: []
@@ -226,7 +213,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: b834f39168bb9b14883e4cc73cbe46d7
+    spriteID: 
     internalID: 0
     vertices: []
     indices: 
@@ -234,14 +221,12 @@ TextureImporter:
     weights: []
     secondaryTextures: []
     spriteCustomMetadata:
-      entries:
-      - key: SpriteEditor.SliceSettings
-        value: '{"sliceOnImport":false,"gridCellCount":{"x":1.0,"y":1.0},"gridSpriteSize":{"x":48.0,"y":48.0},"gridSpriteOffset":{"x":0.0,"y":0.0},"gridSpritePadding":{"x":0.0,"y":0.0},"pivot":{"x":0.5,"y":0.5},"pivotPixels":{"x":0.0,"y":0.0},"autoSlicingMethod":0,"spriteAlignment":0,"pivotUnitMode":1,"slicingType":1,"keepEmptyRects":false,"isAlternate":false}'
+      entries: []
     nameFileIdTable:
-      CLOWNattack_0: 7052014062792705861
-      CLOWNattack_1: 8690024694307727820
-      CLOWNattack_2: -937800318960574930
-      CLOWNattack_3: 6427803983342076567
+      CLOWNattack 1_0: 662271174185335449
+      CLOWNattack 1_1: -6604554386212320161
+      CLOWNattack 1_2: -5809443080392090066
+      CLOWNattack 1_3: -7097734395970203776
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
