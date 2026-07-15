@@ -512,7 +512,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 3
   m_MaskInteraction: 0
-  m_Sprite: {fileID: -8004965270653714688, guid: ba50c899c1438824e86bc8b9a19d22e6, type: 3}
+  m_Sprite: {fileID: -8004965270653714688, guid: 7b72cbd849bdfcc4fb9a478ca34ad3c7, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -537,9 +537,9 @@ MonoBehaviour:
   rb: {fileID: 251146401211272584}
   enemy: {fileID: 3829291956338357413}
   enemyAttack: {fileID: 4839773909496595235}
-  animator: {fileID: 0}
+  animator: {fileID: -8856853204386469627}
   spriteRenderer: {fileID: 93258623398787006}
-  movingParameterName: isMoving
+  movingParameterName: IsMoving
   attackTriggerName: Attack
   attackAnimationInterval: 1
   movementAnimationThreshold: 0.05
@@ -675,8 +675,8 @@ CircleCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: 0, y: -0.1}
-  m_Radius: 0.08
+  m_Offset: {x: 0, y: -0.032743275}
+  m_Radius: 0.08611423
 --- !u!95 &-8856853204386469627
 Animator:
   serializedVersion: 7
