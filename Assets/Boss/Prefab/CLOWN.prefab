@@ -45,7 +45,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BallThrowSkill
   bossController: {fileID: 7888409569323673228}
-  ballPrefab: {fileID: 0}
+  ballPrefab: {fileID: 5839044504320987871, guid: 85d290e6528bc434ebb45a81e292f4c4, type: 3}
   spawnPoint: {fileID: 1687433957366520977}
   ballLifetime: 5
   rotationMultiplier: 180
@@ -94,7 +94,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HoopSkill
   bossController: {fileID: 7888409569323673228}
-  hoopPrefab: {fileID: 0}
+  hoopPrefab: {fileID: 4329012208489350915, guid: fce1eea62ea783244a102574c8168214, type: 3}
   spawnPoint: {fileID: 1687433957366520977}
   hoopCount: 5
   attackDuration: 2
@@ -164,6 +164,17 @@ MonoBehaviour:
   damageLayerMask:
     serializedVersion: 2
     m_Bits: 4294967295
+  useBodyColliderSize: 1
+  manualDamageSize: {x: 1, y: 1}
+  damageAreaOffset: {x: 0, y: 0}
+  postLandingDistance: 1.2
+  wallLayerMask:
+    serializedVersion: 2
+    m_Bits: 0
+  safePositionCheckCount: 16
+  safePositionDistanceSteps: 3
+  safePositionDistanceStep: 0.4
+  safeCheckSizeMultiplier: 0.9
   landingCurve:
     serializedVersion: 2
     m_Curve:
@@ -936,7 +947,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FireRingSkill
   bossController: {fileID: 7888409569323673228}
-  fireRingPrefab: {fileID: 0}
+  fireRingPrefab: {fileID: 5201657713269933230, guid: a65a19ce69459b742b3c8a2295fa791d, type: 3}
   damage: 7
   bindDuration: 3
   followPlayer: 1
