@@ -164,7 +164,7 @@ MonoBehaviour:
   player: {fileID: 9043806875760436245}
   animator: {fileID: 117609572241286197}
   attackOrigin: {fileID: 9004656642347464366}
-  attackEffectPrefab: {fileID: 0}
+  attackEffectPrefab: {fileID: 4405946697792303106, guid: 55a3f0cb85d3a6543be0855ceb5274c9, type: 3}
   attackWidth: 1
   effectSpawnDistance: 1
   effectLifetime: 0.25
@@ -349,7 +349,7 @@ SpriteRenderer:
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 0
+  m_SortingOrder: 3
   m_MaskInteraction: 0
   m_Sprite: {fileID: 4334783836991956000, guid: 3b935745fd368fe4ca4ac8d0071482af, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
