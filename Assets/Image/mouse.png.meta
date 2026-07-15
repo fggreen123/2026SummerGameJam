@@ -1,16 +1,10 @@
 fileFormatVersion: 2
-guid: 7b72cbd849bdfcc4fb9a478ca34ad3c7
+guid: b91ee1f1aecb1e540b5151af66719df4
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -8004965270653714688
-    second: DOG_0
-  - first:
-      213: -3896562595108756751
-    second: DOG_1
-  - first:
-      213: -3842224184864637560
-    second: DOG_2
+      213: 4454631428275665778
+    second: mouse_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -30,7 +24,7 @@ TextureImporter:
     heightScale: 0.25
     normalMapFilter: 0
     flipGreenChannel: 0
-  isReadable: 0
+  isReadable: 1
   streamingMipmaps: 0
   streamingMipmapsPriority: 0
   vTOnly: 0
@@ -43,7 +37,7 @@ TextureImporter:
   maxTextureSize: 2048
   textureSettings:
     serializedVersion: 2
-    filterMode: 1
+    filterMode: 0
     aniso: 1
     mipBias: 0
     wrapU: 1
@@ -63,7 +57,7 @@ TextureImporter:
   alphaUsage: 1
   alphaIsTransparency: 1
   spriteTessellationDetail: -1
-  textureType: 8
+  textureType: 7
   textureShape: 1
   singleChannelComponent: 0
   flipbookRows: 1
@@ -81,7 +75,7 @@ TextureImporter:
     maxTextureSize: 2048
     resizeAlgorithm: 0
     textureFormat: -1
-    textureCompression: 1
+    textureCompression: 0
     compressionQuality: 50
     crunchedCompression: 0
     allowsAlphaSplitting: 0
@@ -119,13 +113,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: DOG_0
+      name: mouse_0
       rect:
         serializedVersion: 2
-        x: 11
-        y: 3
-        width: 27
-        height: 27
+        x: 0
+        y: 2
+        width: 14
+        height: 14
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -134,52 +128,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 00fb85b9f76a8e090800000000000000
-      internalID: -8004965270653714688
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: DOG_1
-      rect:
-        serializedVersion: 2
-        x: 59
-        y: 3
-        width: 27
-        height: 26
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 1f2e771f6f0ace9c0800000000000000
-      internalID: -3896562595108756751
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: DOG_2
-      rect:
-        serializedVersion: 2
-        x: 107
-        y: 3
-        width: 27
-        height: 27
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 88d7ab9f57dadaac0800000000000000
-      internalID: -3842224184864637560
+      spriteID: 27b79afaea702dd30800000000000000
+      internalID: 4454631428275665778
       vertices: []
       indices: 
       edges: []
@@ -198,9 +148,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      DOG_0: -8004965270653714688
-      DOG_1: -3896562595108756751
-      DOG_2: -3842224184864637560
+      mouse_0: 4454631428275665778
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

@@ -1,16 +1,16 @@
 fileFormatVersion: 2
-guid: 7b72cbd849bdfcc4fb9a478ca34ad3c7
+guid: cdfb02e6b9abc1f4299ba2445a629d27
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -8004965270653714688
-    second: DOG_0
+      213: 297761703447499198
+    second: enemy_0
   - first:
-      213: -3896562595108756751
-    second: DOG_1
+      213: 3680619090928529440
+    second: enemy_1
   - first:
-      213: -3842224184864637560
-    second: DOG_2
+      213: -6810697999950630716
+    second: enemy_2
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -119,13 +119,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: DOG_0
+      name: enemy_0
       rect:
         serializedVersion: 2
-        x: 11
+        x: 15
         y: 3
-        width: 27
-        height: 27
+        width: 24
+        height: 25
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -134,19 +134,41 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 00fb85b9f76a8e090800000000000000
-      internalID: -8004965270653714688
+      spriteID: eb114b111bcd12400800000000000000
+      internalID: 297761703447499198
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: DOG_1
+      name: enemy_1
       rect:
         serializedVersion: 2
-        x: 59
+        x: 63
         y: 3
-        width: 27
+        width: 24
+        height: 24
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 020f05cff8f241330800000000000000
+      internalID: 3680619090928529440
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_2
+      rect:
+        serializedVersion: 2
+        x: 107
+        y: 2
+        width: 28
         height: 26
       alignment: 0
       pivot: {x: 0, y: 0}
@@ -156,30 +178,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 1f2e771f6f0ace9c0800000000000000
-      internalID: -3896562595108756751
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: DOG_2
-      rect:
-        serializedVersion: 2
-        x: 107
-        y: 3
-        width: 27
-        height: 27
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 88d7ab9f57dadaac0800000000000000
-      internalID: -3842224184864637560
+      spriteID: 4c0ba70f04a8b71a0800000000000000
+      internalID: -6810697999950630716
       vertices: []
       indices: 
       edges: []
@@ -198,9 +198,9 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      DOG_0: -8004965270653714688
-      DOG_1: -3896562595108756751
-      DOG_2: -3842224184864637560
+      enemy_0: 297761703447499198
+      enemy_1: 3680619090928529440
+      enemy_2: -6810697999950630716
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
