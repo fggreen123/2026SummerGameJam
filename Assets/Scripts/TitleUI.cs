@@ -32,6 +32,7 @@ public class TitleUI : MonoBehaviour
 
     public void StartGame()
     {
+        AudioManager.instance.ChangeBgm(AudioManager.instance.dungeonBgm);
         SceneManager.LoadScene("Map1Game");
     }
 }
