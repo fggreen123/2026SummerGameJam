@@ -26,9 +26,12 @@ public sealed class EnemyAI : MonoBehaviour
     [SerializeField]
     private Enemy enemy;
 
-    // 추가: EnemyAttack 참조
     [SerializeField]
     private EnemyAttack enemyAttack;
+
+    [Tooltip("좌우 반전할 적의 SpriteRenderer입니다.")]
+    [SerializeField]
+    private SpriteRenderer spriteRenderer;
 
     [Header("Player Detection")]
     [SerializeField]
@@ -128,6 +131,9 @@ public sealed class EnemyAI : MonoBehaviour
         enemy = GetComponent<Enemy>();
         enemyAttack = GetComponent<EnemyAttack>();
 
+        spriteRenderer =
+            GetComponentInChildren<SpriteRenderer>();
+
         ConfigureRigidbody();
     }
 
@@ -141,6 +147,12 @@ public sealed class EnemyAI : MonoBehaviour
 
         if (enemyAttack == null)
             enemyAttack = GetComponent<EnemyAttack>();
+
+        if (spriteRenderer == null)
+        {
+            spriteRenderer =
+                GetComponentInChildren<SpriteRenderer>();
+        }
 
         ConfigureRigidbody();
     }
@@ -209,7 +221,8 @@ public sealed class EnemyAI : MonoBehaviour
                 Vector2.MoveTowards(
                     rb.linearVelocity,
                     Vector2.zero,
-                    deceleration * Time.fixedDeltaTime
+                    deceleration *
+                    Time.fixedDeltaTime
                 );
 
             return;
@@ -217,6 +230,7 @@ public sealed class EnemyAI : MonoBehaviour
 
         ApplyMovement();
         LimitVelocity();
+        UpdateSpriteFlip();
     }
 
     private void ConfigureRigidbody()
@@ -224,7 +238,9 @@ public sealed class EnemyAI : MonoBehaviour
         if (rb == null)
             return;
 
-        rb.bodyType = RigidbodyType2D.Dynamic;
+        rb.bodyType =
+            RigidbodyType2D.Dynamic;
+
         rb.gravityScale = 0f;
         rb.freezeRotation = true;
     }
@@ -271,10 +287,20 @@ public sealed class EnemyAI : MonoBehaviour
             return false;
         }
 
+        if (spriteRenderer == null)
+        {
+            Debug.LogWarning(
+                $"{name}: SpriteRenderer가 연결되지 않았습니다. 좌우 반전이 적용되지 않습니다.",
+                this
+            );
+        }
+
         return true;
     }
 
-    private void UpdatePlayerReference(float deltaTime)
+    private void UpdatePlayerReference(
+        float deltaTime
+    )
     {
         if (player != null &&
             player.gameObject.activeInHierarchy)
@@ -367,7 +393,9 @@ public sealed class EnemyAI : MonoBehaviour
         }
     }
 
-    private void UpdatePatrol(float deltaTime)
+    private void UpdatePatrol(
+        float deltaTime
+    )
     {
         patrolTimer -= deltaTime;
 
@@ -375,11 +403,16 @@ public sealed class EnemyAI : MonoBehaviour
         {
             case PatrolPhase.Idle:
                 wantsToMove = false;
+
                 desiredMoveDirection =
                     Vector2.zero;
 
                 if (patrolTimer <= 0f)
-                    EnterPatrolMoving(false);
+                {
+                    EnterPatrolMoving(
+                        false
+                    );
+                }
 
                 break;
 
@@ -454,6 +487,7 @@ public sealed class EnemyAI : MonoBehaviour
             PatrolPhase.Idle;
 
         wantsToMove = false;
+
         desiredMoveDirection =
             Vector2.zero;
 
@@ -484,11 +518,14 @@ public sealed class EnemyAI : MonoBehaviour
         wantsToMove = true;
     }
 
-    private void UpdateChase(float deltaTime)
+    private void UpdateChase(
+        float deltaTime
+    )
     {
         if (player == null)
         {
             wantsToMove = false;
+
             desiredMoveDirection =
                 Vector2.zero;
 
@@ -505,10 +542,10 @@ public sealed class EnemyAI : MonoBehaviour
         if (distance <= Mathf.Epsilon)
         {
             wantsToMove = false;
+
             desiredMoveDirection =
                 Vector2.zero;
 
-            // 같은 위치에 겹쳐 있어도 공격 시도
             enemyAttack.TryAttack(player);
 
             return;
@@ -530,13 +567,10 @@ public sealed class EnemyAI : MonoBehaviour
                 deltaTime
             );
 
-        /*
-         * 추가된 핵심 부분:
-         * 공격 범위 안이면 이동을 멈추고 공격합니다.
-         */
         if (enemyAttack.IsInAttackRange(player))
         {
             wantsToMove = false;
+
             desiredMoveDirection =
                 Vector2.zero;
 
@@ -545,7 +579,6 @@ public sealed class EnemyAI : MonoBehaviour
             return;
         }
 
-        // 공격 범위 밖이면 기존처럼 추적
         wantsToMove = true;
 
         desiredMoveDirection =
@@ -627,6 +660,27 @@ public sealed class EnemyAI : MonoBehaviour
         }
     }
 
+    private void UpdateSpriteFlip()
+    {
+        if (spriteRenderer == null ||
+            rb == null)
+        {
+            return;
+        }
+
+        float horizontalVelocity =
+            rb.linearVelocity.x;
+
+        if (horizontalVelocity > 0.01f)
+        {
+            spriteRenderer.flipX = true;
+        }
+        else if (horizontalVelocity < -0.01f)
+        {
+            spriteRenderer.flipX = false;
+        }
+    }
+
     private static float GetRandomDuration(
         Vector2 range
     )
@@ -654,7 +708,8 @@ public sealed class EnemyAI : MonoBehaviour
     )
     {
         float radians =
-            angle * Mathf.Deg2Rad;
+            angle *
+            Mathf.Deg2Rad;
 
         return new Vector2(
             Mathf.Cos(radians),
@@ -675,6 +730,7 @@ public sealed class EnemyAI : MonoBehaviour
     private void OnDisable()
     {
         wantsToMove = false;
+
         desiredMoveDirection =
             Vector2.zero;
 
@@ -757,21 +813,24 @@ public sealed class EnemyAI : MonoBehaviour
 
     private void OnDrawGizmosSelected()
     {
-        Gizmos.color = Color.yellow;
+        Gizmos.color =
+            Color.yellow;
 
         Gizmos.DrawWireSphere(
             transform.position,
             detectionRadius
         );
 
-        Gizmos.color = Color.red;
+        Gizmos.color =
+            Color.red;
 
         Gizmos.DrawWireSphere(
             transform.position,
             loseTargetRadius
         );
 
-        Gizmos.color = Color.green;
+        Gizmos.color =
+            Color.green;
 
         Vector2 direction =
             Application.isPlaying
