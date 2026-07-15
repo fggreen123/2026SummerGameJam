@@ -226,7 +226,6 @@ public sealed class Enemy : MonoBehaviour, ICardEffectTarget
         {
             return;
         }
-
         CurrentHp = Mathf.Max(0, CurrentHp - damage);
         HpChanged?.Invoke(CurrentHp, MaxHp);
 

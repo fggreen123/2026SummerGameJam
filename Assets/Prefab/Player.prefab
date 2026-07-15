@@ -85,7 +85,7 @@ MonoBehaviour:
   effectLifetime: 0.25
   targetMask:
     serializedVersion: 2
-    m_Bits: 8
+    m_Bits: 0
   attackParameter: Attack
   attackXParameter: AttackX
   attackYParameter: AttackY
@@ -104,9 +104,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Player
   data: {fileID: 11400000, guid: cec83212ec230ff4d84c726e59b42880, type: 2}
   visualTransform: {fileID: 5487122290847379039}
+  visualSpriteRenderer: {fileID: 0}
+  hitFlashColor: {r: 1, g: 0, b: 0, a: 1}
+  hitFlashDuration: 0.08
+  hitFlashCount: 2
+  hitFlashInterval: 0.05
+  deathPivotOffset: {x: 0, y: -0.5}
   deathTiltAngle: -75
   deathTiltDuration: 0.35
-  deathDropDistance: 1.5
 --- !u!114 &4266343697723040803
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -131,6 +136,7 @@ MonoBehaviour:
   isMovingParameter: IsMoving
   moveXParameter: MoveX
   moveYParameter: MoveY
+  Moveable: 1
 --- !u!61 &6709982098232077712
 BoxCollider2D:
   m_ObjectHideFlags: 0

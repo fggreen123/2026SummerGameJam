@@ -58,6 +58,7 @@ public sealed class PlayerMovement : MonoBehaviour
     public Vector2 LastMoveDirection { get; private set; } =
         Vector2.down;
 
+    public bool Moveable = true;
     public bool IsMoving =>
         rb != null &&
         rb.linearVelocity.sqrMagnitude > 0.01f;
@@ -177,7 +178,9 @@ public sealed class PlayerMovement : MonoBehaviour
     {
         if (player == null ||
             player.Data == null ||
-            player.IsDead)
+            player.IsDead ||
+            !Moveable
+            )
         {
             MoveInput = Vector2.zero;
             UpdateAnimation();

@@ -6,7 +6,7 @@ using UnityEngine.UI;
 
 public class CardDistribution: MonoBehaviour
 {
-    [SerializeField] private PlayerMove Player;
+    [SerializeField] private PlayerMovement Player;
     [SerializeField] private Gamemanager GameManager; 
     [SerializeField] private Transform HandRoot;
     [SerializeField] private Gamemanager gamemanager;
@@ -19,7 +19,7 @@ public class CardDistribution: MonoBehaviour
     public int CurrentCardAmount;
     public Vector2 HandCenter = new Vector2(0f, -8.5f);
     public float HandSpacing = 1.8f;
-    public float HoverHeight = 0.7f;
+    public float HoverHeight = 1f;
 
     public List<GameObject> CurrentCardList = new List<GameObject>();
     private readonly List<GameObject> DistributedCardList = new List<GameObject>();
@@ -46,7 +46,7 @@ public class CardDistribution: MonoBehaviour
         if (Keyboard.current.tabKey.wasPressedThisFrame && CurrentCardList.Count > 0)
         {
             Player.Moveable = HandCenterToggle ? true : false;
-            HandCenter = HandCenterToggle ? new Vector2(0f, -11f) : new Vector2(0f, -8.5f);
+            HandCenter = HandCenterToggle ? new Vector2(0f, -6f) : new Vector2(0f, -4f);
             HandCenterToggle = !HandCenterToggle;
             UpdateHandLayout();
         }
@@ -74,18 +74,18 @@ public class CardDistribution: MonoBehaviour
         StartCoroutine(SmoothScale(CardWindowClone.transform, targetScale, 1f));
 
 
-        CardDistribute(new Vector2(-2.5f, 0));
+        CardDistribute(new Vector2(-4f, 0));
         yield return new WaitForSeconds(0.3f);
-        CardDistribute(new Vector2(-7.5f, 0));
+        CardDistribute(new Vector2(-1.35f, 0));
         yield return new WaitForSeconds(0.3f);
-        CardDistribute(new Vector2(2.5f, 0));
+        CardDistribute(new Vector2(1.35f, 0));
         yield return new WaitForSeconds(0.3f);
-        CardDistribute(new Vector2(7.5f, 0));
+        CardDistribute(new Vector2(4f, 0));
 
         yield return new WaitUntil(() => CurrentCardAmount == TargetCardAmount);
         HideUnselectedCards();
         StartCoroutine(SmoothScale(CardWindowClone.transform, Vector2.zero, 1f));
-        StartCoroutine(SmoothMove(CardWindowClone, new Vector2(0, 11), null));
+        StartCoroutine(SmoothMove(CardWindowClone, new Vector2(0, -6), null));
         HandCenterToggle = false;
         HandCenter = new Vector2(0f, -11f);
         UpdateHandLayout();
