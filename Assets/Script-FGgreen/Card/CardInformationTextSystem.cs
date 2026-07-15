@@ -1,13 +1,22 @@
 using TMPro;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class CardInformationTextSystem : MonoBehaviour
 {
     [SerializeField] private TMP_Text CardType;
     [SerializeField] private TMP_Text CardEffect;
 
+    private RectTransform rectTransform;
+    private RectTransform canvasRect;
+    private Canvas canvas;
+
     private void Awake()
     {
+        rectTransform = (RectTransform)transform;
+        canvas = GetComponentInParent<Canvas>();
+        canvasRect = (RectTransform)canvas.transform;
+
         foreach (TMP_Text text in GetComponentsInChildren<TMP_Text>(true))
         {
             if (text.name == "CardType")
@@ -21,9 +30,16 @@ public class CardInformationTextSystem : MonoBehaviour
         }
     }
 
-    public void Show(CardSuit suit)
+    private void Update()
+    {
+        MoveToMouse();
+    }
+
+    public void Show(CardSuit suit, bool alignRight)
     {
         gameObject.SetActive(true);
+        rectTransform.pivot = new Vector2(alignRight ? 1f : 0f, 1f);
+        MoveToMouse();
 
         switch (suit)
         {
@@ -75,5 +91,17 @@ public class CardInformationTextSystem : MonoBehaviour
         CardType.text = type;
         CardType.color = color;
         CardEffect.text = effect;
+    }
+
+    private void MoveToMouse()
+    {
+        RectTransformUtility.ScreenPointToWorldPointInRectangle(
+            canvasRect,
+            Mouse.current.position.ReadValue(),
+            canvas.worldCamera,
+            out Vector3 mousePosition
+        );
+
+        rectTransform.position = mousePosition;
     }
 }

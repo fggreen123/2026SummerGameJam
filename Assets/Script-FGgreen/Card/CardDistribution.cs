@@ -95,7 +95,10 @@ public class CardDistribution: MonoBehaviour
             return;
         }
 
-        CardInformationText.Show(card.GetComponent<CardSystem>().Suit);
+        CardInformationText.Show(
+            card.GetComponent<CardSystem>().Suit,
+            DistributedCardList.IndexOf(card) == 3
+        );
     }
 
     IEnumerator StartCardDistribute()
