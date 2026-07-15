@@ -32,13 +32,17 @@ public sealed class FireRingSkill : BossSkill
 
     private void Reset()
     {
-        bossController = GetComponentInParent<BossController>();
+        bossController =
+            GetComponentInParent<BossController>();
     }
 
     private void Awake()
     {
         if (bossController == null)
-            bossController = GetComponentInParent<BossController>();
+        {
+            bossController =
+                GetComponentInParent<BossController>();
+        }
     }
 
     protected override IEnumerator ExecuteSkill()
@@ -53,43 +57,57 @@ public sealed class FireRingSkill : BossSkill
             yield break;
         }
 
-        Transform player = bossController.Player;
+        Player playerComponent =
+            FindActualPlayer();
 
-        if (player == null)
+        if (playerComponent == null)
         {
             Debug.LogWarning(
-                $"{name}: BossController의 Player가 연결되지 않았습니다.",
+                $"{name}: 활성화된 Player를 찾지 못했습니다.",
                 this
             );
 
             yield break;
         }
 
-        GameObject effectObject = CreateEffect(player);
+        Transform playerTransform =
+            playerComponent.transform;
 
-        ApplyDamage(player);
+        GameObject effectObject =
+            CreateEffect(playerTransform);
+
+        ApplyDamage(playerComponent);
 
         PlayerMovement playerMovement =
-            player.GetComponentInParent<PlayerMovement>();
+            playerComponent.GetComponent<PlayerMovement>();
+
+        if (playerMovement == null)
+        {
+            playerMovement =
+                playerComponent.GetComponentInParent<PlayerMovement>();
+        }
 
         Rigidbody2D playerRigidbody =
-            player.GetComponentInParent<Rigidbody2D>();
+            playerComponent.GetComponent<Rigidbody2D>();
+
+        if (playerRigidbody == null)
+        {
+            playerRigidbody =
+                playerComponent.GetComponentInParent<Rigidbody2D>();
+        }
 
         bool movementWasEnabled =
             playerMovement != null &&
             playerMovement.enabled;
 
-        Vector2 previousVelocity = Vector2.zero;
-        float previousAngularVelocity = 0f;
+        float previousAngularVelocity =
+            0f;
 
         RigidbodyConstraints2D previousConstraints =
             RigidbodyConstraints2D.None;
 
         if (playerRigidbody != null)
         {
-            previousVelocity =
-                playerRigidbody.linearVelocity;
-
             previousAngularVelocity =
                 playerRigidbody.angularVelocity;
 
@@ -99,7 +117,8 @@ public sealed class FireRingSkill : BossSkill
             playerRigidbody.linearVelocity =
                 Vector2.zero;
 
-            playerRigidbody.angularVelocity = 0f;
+            playerRigidbody.angularVelocity =
+                0f;
 
             playerRigidbody.constraints =
                 previousConstraints |
@@ -107,46 +126,54 @@ public sealed class FireRingSkill : BossSkill
         }
 
         if (playerMovement != null)
-            playerMovement.enabled = false;
+        {
+            playerMovement.enabled =
+                false;
+        }
 
         float elapsedTime = 0f;
 
         while (elapsedTime < bindDuration)
         {
-            if (player == null)
+            if (playerComponent == null)
+            {
                 break;
+            }
 
             if (playerRigidbody != null)
             {
                 playerRigidbody.linearVelocity =
                     Vector2.zero;
 
-                playerRigidbody.angularVelocity = 0f;
+                playerRigidbody.angularVelocity =
+                    0f;
             }
 
-            if (followPlayer && effectObject != null)
+            if (followPlayer &&
+                effectObject != null)
             {
                 effectObject.transform.position =
-                    player.position + effectOffset;
+                    playerTransform.position +
+                    effectOffset;
             }
 
-            elapsedTime += Time.deltaTime;
+            elapsedTime +=
+                Time.deltaTime;
 
             yield return null;
         }
 
         if (playerMovement != null)
-            playerMovement.enabled = movementWasEnabled;
+        {
+            playerMovement.enabled =
+                movementWasEnabled;
+        }
 
         if (playerRigidbody != null)
         {
             playerRigidbody.constraints =
                 previousConstraints;
 
-            /*
-             * 구속이 끝난 직후 이전 속도로 갑자기 움직이지 않도록
-             * 이동 속도는 0으로 유지합니다.
-             */
             playerRigidbody.linearVelocity =
                 Vector2.zero;
 
@@ -155,10 +182,65 @@ public sealed class FireRingSkill : BossSkill
         }
 
         if (effectObject != null)
+        {
             Destroy(effectObject);
+        }
     }
 
-    private GameObject CreateEffect(Transform player)
+    private Player FindActualPlayer()
+    {
+        Player foundPlayer =
+            FindFirstObjectByType<Player>();
+
+        if (foundPlayer != null &&
+            foundPlayer.gameObject.activeInHierarchy)
+        {
+            return foundPlayer;
+        }
+
+        GameObject taggedPlayer = null;
+
+        try
+        {
+            taggedPlayer =
+                GameObject.FindGameObjectWithTag(
+                    "Player"
+                );
+        }
+        catch (UnityException)
+        {
+            Debug.LogWarning(
+                $"{name}: Player 태그가 등록되어 있지 않습니다.",
+                this
+            );
+        }
+
+        if (taggedPlayer == null)
+        {
+            return null;
+        }
+
+        foundPlayer =
+            taggedPlayer.GetComponent<Player>();
+
+        if (foundPlayer == null)
+        {
+            foundPlayer =
+                taggedPlayer.GetComponentInParent<Player>();
+        }
+
+        if (foundPlayer == null)
+        {
+            foundPlayer =
+                taggedPlayer.GetComponentInChildren<Player>();
+        }
+
+        return foundPlayer;
+    }
+
+    private GameObject CreateEffect(
+        Transform playerTransform
+    )
     {
         if (fireRingPrefab == null)
         {
@@ -171,30 +253,44 @@ public sealed class FireRingSkill : BossSkill
         }
 
         Vector3 spawnPosition =
-            player.position + effectOffset;
+            playerTransform.position +
+            effectOffset;
 
-        GameObject effectObject = Instantiate(
-            fireRingPrefab,
-            spawnPosition,
-            Quaternion.identity
-        );
+        GameObject effectObject =
+            Instantiate(
+                fireRingPrefab,
+                spawnPosition,
+                Quaternion.identity
+            );
 
         return effectObject;
     }
-    private void ApplyDamage(Transform target)
-    {
-        Player player =
-            target.GetComponentInParent<Player>();
 
+    private void ApplyDamage(
+        Player player
+    )
+    {
         if (player == null)
+        {
             return;
+        }
 
         IDamageable damageable =
             player.GetComponent<IDamageable>();
 
         if (damageable == null)
-            return;
+        {
+            damageable =
+                player.GetComponentInParent<IDamageable>();
+        }
 
-        damageable.TakeDamage(damage);
+        if (damageable == null)
+        {
+            return;
+        }
+
+        damageable.TakeDamage(
+            damage
+        );
     }
 }

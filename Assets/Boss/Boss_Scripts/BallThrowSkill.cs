@@ -13,7 +13,7 @@ public sealed class BallThrowSkill : BossSkill
     [SerializeField]
     private GameObject ballPrefab;
 
-    [Tooltip("공이 생성될 위치입니다. 비어 있으면 현재 오브젝트 위치를 사용합니다.")]
+    [Tooltip("공이 생성될 위치입니다. 비어 있으면 보스 위치를 사용합니다.")]
     [SerializeField]
     private Transform spawnPoint;
 
@@ -26,15 +26,23 @@ public sealed class BallThrowSkill : BossSkill
     [SerializeField, Min(0f)]
     private float rotationMultiplier = 180f;
 
+    [Tooltip("생성되는 공의 고정 크기입니다.")]
+    [SerializeField]
+    private Vector3 ballScale = Vector3.one;
+
     private void Reset()
     {
-        bossController = GetComponentInParent<BossController>();
+        bossController =
+            GetComponentInParent<BossController>();
     }
 
     private void Awake()
     {
         if (bossController == null)
-            bossController = GetComponentInParent<BossController>();
+        {
+            bossController =
+                GetComponentInParent<BossController>();
+        }
     }
 
     protected override IEnumerator ExecuteSkill()
@@ -59,18 +67,8 @@ public sealed class BallThrowSkill : BossSkill
             yield break;
         }
 
-        Transform player = bossController.Player;
-        BossSkillData skillData = bossController.SkillData;
-
-        if (player == null)
-        {
-            Debug.LogWarning(
-                $"{name}: BossController의 Player가 연결되지 않았습니다.",
-                this
-            );
-
-            yield break;
-        }
+        BossSkillData skillData =
+            bossController.SkillData;
 
         if (skillData == null)
         {
@@ -82,28 +80,57 @@ public sealed class BallThrowSkill : BossSkill
             yield break;
         }
 
+        Player playerComponent =
+            FindActualPlayer();
+
+        if (playerComponent == null)
+        {
+            Debug.LogWarning(
+                $"{name}: 활성화된 Player를 찾지 못했습니다.",
+                this
+            );
+
+            yield break;
+        }
+
+        Transform playerTransform =
+            playerComponent.transform;
+
         Vector3 spawnPosition =
             spawnPoint != null
                 ? spawnPoint.position
-                : transform.position;
+                : bossController.transform.position;
 
         Vector2 moveDirection =
-            ((Vector2)player.position - (Vector2)spawnPosition).normalized;
+            (
+                (Vector2)playerTransform.position -
+                (Vector2)spawnPosition
+            ).normalized;
 
         if (moveDirection.sqrMagnitude <= 0.0001f)
-            moveDirection = Vector2.right;
+        {
+            moveDirection =
+                Vector2.right;
+        }
 
-        GameObject ballObject = Instantiate(
-            ballPrefab,
-            spawnPosition,
-            Quaternion.identity
-        );
+        GameObject ballObject =
+            Instantiate(
+                ballPrefab,
+                spawnPosition,
+                Quaternion.identity
+            );
+
+        ballObject.transform.localScale =
+            ballScale;
 
         BallProjectile projectile =
             ballObject.GetComponent<BallProjectile>();
 
         if (projectile == null)
-            projectile = ballObject.AddComponent<BallProjectile>();
+        {
+            projectile =
+                ballObject.AddComponent<BallProjectile>();
+        }
 
         projectile.Initialize(
             bossController.gameObject,
@@ -115,9 +142,62 @@ public sealed class BallThrowSkill : BossSkill
         );
 
         if (skillData.ballAttackInterval > 0f)
+        {
             yield return new WaitForSeconds(
                 skillData.ballAttackInterval
             );
+        }
+    }
+
+    private Player FindActualPlayer()
+    {
+        Player foundPlayer =
+            FindFirstObjectByType<Player>();
+
+        if (foundPlayer != null &&
+            foundPlayer.gameObject.activeInHierarchy)
+        {
+            return foundPlayer;
+        }
+
+        GameObject taggedPlayer = null;
+
+        try
+        {
+            taggedPlayer =
+                GameObject.FindGameObjectWithTag(
+                    "Player"
+                );
+        }
+        catch (UnityException)
+        {
+            Debug.LogWarning(
+                $"{name}: Player 태그가 등록되어 있지 않습니다.",
+                this
+            );
+        }
+
+        if (taggedPlayer == null)
+        {
+            return null;
+        }
+
+        foundPlayer =
+            taggedPlayer.GetComponent<Player>();
+
+        if (foundPlayer == null)
+        {
+            foundPlayer =
+                taggedPlayer.GetComponentInParent<Player>();
+        }
+
+        if (foundPlayer == null)
+        {
+            foundPlayer =
+                taggedPlayer.GetComponentInChildren<Player>();
+        }
+
+        return foundPlayer;
     }
 
     private sealed class BallProjectile : MonoBehaviour
@@ -131,7 +211,8 @@ public sealed class BallThrowSkill : BossSkill
 
         private void Awake()
         {
-            rb = GetComponent<Rigidbody2D>();
+            rb =
+                GetComponent<Rigidbody2D>();
         }
 
         public void Initialize(
@@ -143,11 +224,20 @@ public sealed class BallThrowSkill : BossSkill
             float lifetime
         )
         {
-            owner = ownerObject;
-            damage = Mathf.Max(0, ballDamage);
+            owner =
+                ownerObject;
+
+            damage =
+                Mathf.Max(
+                    0,
+                    ballDamage
+                );
 
             if (rb == null)
-                rb = GetComponent<Rigidbody2D>();
+            {
+                rb =
+                    GetComponent<Rigidbody2D>();
+            }
 
             if (rb == null)
             {
@@ -156,18 +246,31 @@ public sealed class BallThrowSkill : BossSkill
                     this
                 );
 
-                Destroy(gameObject);
+                Destroy(
+                    gameObject
+                );
+
                 return;
             }
 
-            Vector2 safeDirection = direction.normalized;
+            Vector2 safeDirection =
+                direction.normalized;
 
             if (safeDirection.sqrMagnitude <= 0.0001f)
-                safeDirection = Vector2.right;
+            {
+                safeDirection =
+                    Vector2.right;
+            }
 
-            float safeSpeed = Mathf.Max(0f, speed);
+            float safeSpeed =
+                Mathf.Max(
+                    0f,
+                    speed
+                );
 
-            rb.linearVelocity = safeDirection * safeSpeed;
+            rb.linearVelocity =
+                safeDirection *
+                safeSpeed;
 
             float rotateDirection =
                 safeDirection.x >= 0f
@@ -175,34 +278,55 @@ public sealed class BallThrowSkill : BossSkill
                     : -1f;
 
             rb.angularVelocity =
-                -safeSpeed
-                * rotationSpeedMultiplier
-                * rotateDirection;
+                -safeSpeed *
+                rotationSpeedMultiplier *
+                rotateDirection;
 
-            initialized = true;
+            initialized =
+                true;
 
             if (lifetime > 0f)
-                Destroy(gameObject, lifetime);
+            {
+                Destroy(
+                    gameObject,
+                    lifetime
+                );
+            }
         }
 
-        private void OnTriggerEnter2D(Collider2D other)
+        private void OnTriggerEnter2D(
+            Collider2D other
+        )
         {
-            ProcessHit(other);
+            ProcessHit(
+                other
+            );
         }
 
         private void OnCollisionEnter2D(
             Collision2D collision
         )
         {
-            ProcessHit(collision.collider);
+            ProcessHit(
+                collision.collider
+            );
         }
-        private void ProcessHit(Collider2D other)
+
+        private void ProcessHit(
+            Collider2D other
+        )
         {
-            if (!initialized || hasHit || other == null)
+            if (!initialized ||
+                hasHit ||
+                other == null)
+            {
                 return;
+            }
 
             if (IsOwner(other))
+            {
                 return;
+            }
 
             Player player =
                 other.GetComponentInParent<Player>();
@@ -214,21 +338,37 @@ public sealed class BallThrowSkill : BossSkill
 
                 if (damageable != null)
                 {
-                    hasHit = true;
-                    damageable.TakeDamage(damage);
-                    Destroy(gameObject);
+                    hasHit =
+                        true;
+
+                    damageable.TakeDamage(
+                        damage
+                    );
+
+                    Destroy(
+                        gameObject
+                    );
                 }
 
                 return;
             }
 
-            hasHit = true;
-            Destroy(gameObject);
+            hasHit =
+                true;
+
+            Destroy(
+                gameObject
+            );
         }
-        private bool IsOwner(Collider2D other)
+
+        private bool IsOwner(
+            Collider2D other
+        )
         {
             if (owner == null)
+            {
                 return false;
+            }
 
             return other.transform.root ==
                    owner.transform.root;
