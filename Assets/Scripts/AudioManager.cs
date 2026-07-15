@@ -18,7 +18,7 @@ public class AudioManager : MonoBehaviour
     int channelIndex;
 
     public enum Sfx {PlayerSwordSound, RatAttackSound, DogAttackSound, SkeletonSwordSound, GhostAttackSound, 
-                     BallSound, HulahoopSound, FireSound, JumpUpSound, JumpDownSound, DamageSound, DungeonSound}
+                     BallSound, HulahoopSound, FireSound, JumpUpSound, JumpDownSound, DamageSound, DungeonSound, BGM}
 
     void Awake()
     {
