@@ -6,7 +6,7 @@ AnimationClip:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: DOGMove
+  m_Name: FireRing
   serializedVersion: 7
   m_Legacy: 0
   m_Compressed: 0
@@ -21,9 +21,9 @@ AnimationClip:
   - serializedVersion: 2
     curve:
     - time: 0
-      value: {fileID: -8004965270653714688, guid: f1291ec3a5c43324e928036fd777f7bf, type: 3}
+      value: {fileID: -937800318960574930, guid: 7464344fb99b29c4f88e9ede4c1c37a7, type: 3}
     - time: 0.083333336
-      value: {fileID: -3896562595108756751, guid: f1291ec3a5c43324e928036fd777f7bf, type: 3}
+      value: {fileID: 6427803983342076567, guid: 7464344fb99b29c4f88e9ede4c1c37a7, type: 3}
     attribute: m_Sprite
     path: 
     classID: 212
@@ -46,8 +46,8 @@ AnimationClip:
       isIntCurve: 0
       isSerializeReferenceCurve: 0
     pptrCurveMapping:
-    - {fileID: -8004965270653714688, guid: f1291ec3a5c43324e928036fd777f7bf, type: 3}
-    - {fileID: -3896562595108756751, guid: f1291ec3a5c43324e928036fd777f7bf, type: 3}
+    - {fileID: -937800318960574930, guid: 7464344fb99b29c4f88e9ede4c1c37a7, type: 3}
+    - {fileID: 6427803983342076567, guid: 7464344fb99b29c4f88e9ede4c1c37a7, type: 3}
   m_AnimationClipSettings:
     serializedVersion: 2
     m_AdditiveReferencePoseClip: {fileID: 0}

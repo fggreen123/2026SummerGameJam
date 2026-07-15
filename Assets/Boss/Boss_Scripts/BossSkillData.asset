@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 47bd42db6ca6c1747beeb5923c52f553, type: 3}
+  m_Name: BossSkillData
+  m_EditorClassIdentifier: Assembly-CSharp::BossSkillData
+  ballDamage: 5
+  ballAttackInterval: 1
+  ballSpeed: 5
+  ballRotationMultiplier: 180
+  ballLifetime: 5
+  hoopDamage: 15
+  hoopAttackInterval: 0.25
+  hoopSpeed: 5
+  fireRingDamage: 7
+  fireRingAttackInterval: 0.5
+  fireRingCount: 3
+  fireRingMoveSpeed: 3
+  jumpDamage: 5
+  jumpDuration: 0.75
+  jumpDistanceFromPlayer: 3
+  patternStartDelay: 1
+  patternEndDelay: 1
