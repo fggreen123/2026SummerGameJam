@@ -6,6 +6,7 @@ using UnityEngine.UI;
 
 public class CardDistribution: MonoBehaviour
 {
+    [SerializeField] private CardInformationTextSystem CardInformationText;
     [SerializeField] private PlayerMovement Player;
     [SerializeField] private Gamemanager GameManager; 
     [SerializeField] private Transform HandRoot;
@@ -20,6 +21,7 @@ public class CardDistribution: MonoBehaviour
     public Vector2 HandCenter = new Vector2(0f, -8.5f);
     public float HandSpacing = 1.8f;
     public float HoverHeight = 1f;
+    public GameObject HoveredDistributedCard { get; private set; }
 
     public List<GameObject> CurrentCardList = new List<GameObject>();
     private readonly List<GameObject> DistributedCardList = new List<GameObject>();
@@ -32,9 +34,17 @@ public class CardDistribution: MonoBehaviour
     };
     private int jokerCardIndex;
     private bool HandCenterToggle=true;
+    private Camera mainCamera;
 
     private void Start()
     {
+        if (CardInformationText == null)
+        {
+            CardInformationText = FindFirstObjectByType<CardInformationTextSystem>(FindObjectsInactive.Include);
+        }
+
+        CardInformationText.Hide();
+        mainCamera = Camera.main;
         jokerCardIndex = Random.value < 0.05f
             ? Random.Range(0, CardSuitOrder.Length)
             : -1;
@@ -43,6 +53,8 @@ public class CardDistribution: MonoBehaviour
 
     private void Update()
     {
+        DetectDistributedCardHover();
+
         if (Keyboard.current.tabKey.wasPressedThisFrame && CurrentCardList.Count > 0)
         {
             Player.Moveable = HandCenterToggle ? true : false;
@@ -50,6 +62,40 @@ public class CardDistribution: MonoBehaviour
             HandCenterToggle = !HandCenterToggle;
             UpdateHandLayout();
         }
+    }
+
+    private void DetectDistributedCardHover()
+    {
+        Vector2 mousePosition = mainCamera.ScreenToWorldPoint(Mouse.current.position.ReadValue());
+        Collider2D hit = Physics2D.OverlapPoint(mousePosition);
+
+        if (hit != null &&
+            DistributedCardList.Contains(hit.gameObject) &&
+            !CurrentCardList.Contains(hit.gameObject))
+        {
+            SetHoveredDistributedCard(hit.gameObject);
+            return;
+        }
+
+        SetHoveredDistributedCard(null);
+    }
+
+    private void SetHoveredDistributedCard(GameObject card)
+    {
+        if (HoveredDistributedCard == card)
+        {
+            return;
+        }
+
+        HoveredDistributedCard = card;
+
+        if (card == null)
+        {
+            CardInformationText.Hide();
+            return;
+        }
+
+        CardInformationText.Show(card.GetComponent<CardSystem>().Suit);
     }
 
     IEnumerator StartCardDistribute()
