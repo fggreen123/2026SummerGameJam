@@ -295,8 +295,12 @@ public class CardSystem : MonoBehaviour
                 usedTarget.GetComponent<Enemy>().ApplyJoker();
                 break;
         }
-        if(cardDistribution.CurrentCardList.Count == 0) cardDistribution.RemoveCard(gameObject);
-        cardDistribution.SetPlayerMoveable(true);
+        cardDistribution.RemoveCard(gameObject);
+        if (cardDistribution)
+        {
+            cardDistribution.SetPlayerMoveable(true);
+            cardDistribution.HandCenterToggle = false;
+        }
         return true;
     }
 

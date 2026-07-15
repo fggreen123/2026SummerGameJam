@@ -35,7 +35,7 @@ public class IntroEffect : MonoBehaviour
     }
     IEnumerator ScaleUp(GameObject target)
     {
-        target.transform.localScale = new Vector2(Time.deltaTime, Time.deltaTime);
+        target.transform.localScale += Vector3.one * 3 * Time.deltaTime;
         yield return null;
     }
 }
