@@ -16,6 +16,10 @@ public sealed class EnemyAttack : MonoBehaviour
     [SerializeField]
     private Enemy enemy;
 
+    [Tooltip("공격 애니메이션을 실행하는 별도 컴포넌트입니다.")]
+    [SerializeField]
+    private EnemyAttackAnimation attackAnimation;
+
     [Tooltip("공격 시작 위치입니다. 비어 있으면 적 오브젝트 위치를 사용합니다.")]
     [SerializeField]
     private Transform attackOrigin;
@@ -59,23 +63,44 @@ public sealed class EnemyAttack : MonoBehaviour
 
     private void Reset()
     {
-        enemy = GetComponent<Enemy>();
-        attackOrigin = transform;
+        enemy =
+            GetComponent<Enemy>();
+
+        attackAnimation =
+            GetComponent<EnemyAttackAnimation>();
+
+        attackOrigin =
+            transform;
     }
 
     private void Awake()
     {
         if (enemy == null)
-            enemy = GetComponent<Enemy>();
+        {
+            enemy =
+                GetComponent<Enemy>();
+        }
+
+        if (attackAnimation == null)
+        {
+            attackAnimation =
+                GetComponent<EnemyAttackAnimation>();
+        }
 
         if (attackOrigin == null)
-            attackOrigin = transform;
+        {
+            attackOrigin =
+                transform;
+        }
     }
 
     public bool IsInAttackRange(Transform target)
     {
-        if (target == null || enemy == null)
+        if (target == null ||
+            enemy == null)
+        {
             return false;
+        }
 
         Vector2 originPosition =
             attackOrigin != null
@@ -138,7 +163,10 @@ public sealed class EnemyAttack : MonoBehaviour
             originPosition;
 
         if (direction.sqrMagnitude <= 0.0001f)
-            direction = Vector2.right;
+        {
+            direction =
+                Vector2.right;
+        }
 
         direction.Normalize();
 
@@ -147,6 +175,12 @@ public sealed class EnemyAttack : MonoBehaviour
 
         nextAttackTime =
             Time.time + cooldown;
+
+        // 실제 공격이 확정된 순간 공격 애니메이션을 실행합니다.
+        if (attackAnimation != null)
+        {
+            attackAnimation.PlayAttackAnimation();
+        }
 
         SpawnAttackEffect(
             originPosition,
@@ -345,6 +379,18 @@ public sealed class EnemyAttack : MonoBehaviour
                 0f,
                 effectLifetime
             );
+
+        if (enemy == null)
+        {
+            enemy =
+                GetComponent<Enemy>();
+        }
+
+        if (attackAnimation == null)
+        {
+            attackAnimation =
+                GetComponent<EnemyAttackAnimation>();
+        }
     }
 
     private void OnDrawGizmosSelected()
