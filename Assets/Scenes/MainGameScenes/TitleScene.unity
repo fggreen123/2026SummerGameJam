@@ -5870,7 +5870,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 662abc4a0a019a54f9b60417f031fcfe, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AudioManager
-  BgmClip: {fileID: 8300000, guid: 7f9f625f59a7c9840bb0274e1319b2ed, type: 3}
+  titleBgm: {fileID: 8300000, guid: 7f9f625f59a7c9840bb0274e1319b2ed, type: 3}
+  dungeonBgm: {fileID: 8300000, guid: 85950be60ea834e40873b9816c8a647a, type: 3}
   bgmVolume: 0.2
   sfxClip:
   - {fileID: 8300000, guid: b425ca5e177f3814a9b2aff2d52370de, type: 3}
