@@ -5,7 +5,7 @@ public class GameOverUI : MonoBehaviour
 {
     public void OnClickRestart()
     {
-        SceneManager.LoadScene("Map1Game");
+        SceneManager.LoadScene("MapFloor1Game");
         Debug.Log("Restart");
     }
 

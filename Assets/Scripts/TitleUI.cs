@@ -14,6 +14,7 @@ public class TitleUI : MonoBehaviour
 
     private void Start()
     {
+        if (Tutorial == null) return;
         Tutorial.enabled = false;
         titlePanel.SetActive(true);
         settingPanel.SetActive(false);
@@ -51,6 +52,10 @@ public class TitleUI : MonoBehaviour
         SceneManager.LoadScene("MapFloor1Game");
     }
 
+    public void GotoTitleMenu()
+    {
+        SceneManager.LoadScene("TitleScene");
+    }
     public void TutorialSystem()
     {
         tutorialIndex = 0;
