@@ -277,6 +277,8 @@ public sealed class PlayerAttack : MonoBehaviour
             direction
         );
 
+        AudioManager.instance.PlaySfx(AudioManager.Sfx.PlayerSwordSound);
+
         PerformAttack(
             direction
         );
